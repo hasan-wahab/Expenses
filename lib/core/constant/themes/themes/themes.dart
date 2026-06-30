@@ -53,6 +53,13 @@ class AppTheme {
           color: AppColors.secondaryTColor,
         ),
       ),
+      cardTheme: CardThemeData(
+        surfaceTintColor: AppColors.primaryDark,
+        margin: EdgeInsets.zero,
+        shadowColor: AppColors.iconsColor,
+        color: AppColors.bgColor,
+      ),
+
       // Component Themes with Responsive Spacing
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

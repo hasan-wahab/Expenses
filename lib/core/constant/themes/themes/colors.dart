@@ -33,4 +33,8 @@ class AppColors {
 
   /// White Color
   static const Color white = Colors.white;
+
+  /// Banner Colors
+  static const Color bannerYellowColor = Color(0xFFFEF3C7);
+  static const Color bannerWarningColor = Color(0xFFFFDAD6);
 }

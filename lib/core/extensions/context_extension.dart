@@ -14,11 +14,13 @@ extension ContextExtension on BuildContext {
   TextStyle? get appBarTextStyle => textTheme.headlineSmall;
 
   /// Body Text Style
+
   TextStyle? get extraLarge => textTheme.headlineLarge;
   TextStyle? get primaryText => textTheme.titleLarge;
   TextStyle? get secondaryText => textTheme.titleMedium;
   TextStyle? get smallText => textTheme.bodyLarge;
   TextStyle? get extraSmallText => textTheme.bodySmall;
+
 
   /// Snack bar
   void showSnackBar(String message) {

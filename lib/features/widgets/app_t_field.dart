@@ -11,17 +11,19 @@ class AppTField extends StatelessWidget {
   final String hintText;
   final String labelText;
   final TextEditingController? controller;
-  final IconData startIcon;
+  final IconData? startIcon;
   final IconData? endIcon;
   final String? Function(String?)? validator;
-  const AppTField({
+  bool isExtended;
+  AppTField({
     super.key,
     required this.hintText,
     required this.labelText,
     this.controller,
-    required this.startIcon,
+    this.startIcon,
     this.endIcon,
     this.validator,
+    this.isExtended = false,
   });
 
   @override
@@ -32,23 +34,31 @@ class AppTField extends StatelessWidget {
       children: [
         ExtraSmallText(text: labelText.toTitleCase()),
         SizedBox(
-          height: 48.h,
+          height: isExtended ? 86.h : 48.h,
           width: 350.w,
           child: CupertinoTextField.borderless(
+            padding: isExtended
+                ? .only(left: 10.w, top: 10.h)
+                : .only(left: 10.w),
             suffix: endIcon != null
                 ? Padding(
                     padding: EdgeInsets.only(right: 16.w),
                     child: Icon(endIcon),
                   )
                 : null,
-            prefix: Padding(
-              padding: EdgeInsets.only(left: 16.w),
-              child: Icon(startIcon),
-            ),
+            prefix: startIcon != null
+                ? Padding(
+                    padding: EdgeInsets.only(left: 16.w),
+                    child: Icon(startIcon),
+                  )
+                : null,
             controller: controller,
+
             placeholder: hintText,
 
-            textAlignVertical: .center,
+            textAlignVertical: isExtended
+                ? TextAlignVertical.top
+                : TextAlignVertical.center,
             textAlign: .left,
             decoration: BoxDecoration(
               color: AppColors.bgColor,

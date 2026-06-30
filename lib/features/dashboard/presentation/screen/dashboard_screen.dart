@@ -42,7 +42,9 @@ class DashboardScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: AddNewFloatingButton(text: DashboardText.addNew),
+      floatingActionButton: AddNewFloatingButton(text: DashboardText.addNew,onTap: (){
+        context.push(RoutesName.addExpenseScreen);
+      },),
     );
   }
 }

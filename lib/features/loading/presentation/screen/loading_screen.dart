@@ -1,9 +1,7 @@
-import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/features/widgets/extra_large_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../widgets/large_text.dart';
 import '../../../widgets/small_text.dart';
 
 class LoadingScreen extends StatelessWidget {

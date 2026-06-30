@@ -35,7 +35,9 @@ class MonthlyTotalExpenseCard extends StatelessWidget {
           Expanded(
             flex: 40,
             child: Container(
-              padding: .all(25.r),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              alignment: .center,
+
               decoration: BoxDecoration(
                 color: AppColors.bgColor,
                 borderRadius: .only(
@@ -44,6 +46,7 @@ class MonthlyTotalExpenseCard extends StatelessWidget {
                 ),
               ),
               child: Column(
+                mainAxisSize: .min,
                 crossAxisAlignment: .start,
                 children: [
                   SmallText(text: MonthlySummaryText.totalExpense),
