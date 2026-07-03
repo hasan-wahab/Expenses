@@ -1,6 +1,11 @@
 import 'package:expense_app/core/router/routes_name.dart';
+import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:expense_app/features/auth/presentation/bloc/auth_events.dart';
+import 'package:expense_app/features/auth/presentation/bloc/auth_states.dart';
 import 'package:expense_app/features/auth/presentation/widgets/devider_row.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,7 +18,15 @@ import '../../../widgets/priamary_butn.dart';
 import '../../../widgets/small_text.dart';
 
 class LoginForm extends StatelessWidget {
-  const LoginForm({super.key});
+  final TextEditingController emailCtrl;
+  final TextEditingController passwordCtrl;
+  bool isObscure;
+  LoginForm({
+    super.key,
+    required this.emailCtrl,
+    required this.passwordCtrl,
+    this.isObscure = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,21 +38,37 @@ class LoginForm extends StatelessWidget {
         crossAxisAlignment: .start,
         children: [
           AppTField(
+            controller: emailCtrl,
             labelText: 'Email',
-            hintText: 'Email',
+            hintText: 'Enter your email...',
             startIcon: Icons.email,
           ),
           SizedBox(height: 16.h),
           AppTField(
+            isObscure: isObscure,
+
+            /// Add event for the password obscure true / false
+            endIconOnTap: () => context.read<AuthBloc>().add(
+              ObsecurePasswordEvent(isObscure: isObscure),
+            ),
+            controller: passwordCtrl,
             labelText: 'Password',
-            hintText: 'Password',
+            hintText: 'Enter your password...',
             startIcon: Icons.lock,
-            endIcon: Icons.remove_red_eye,
+            endIcon: isObscure ? Icons.visibility_off : Icons.visibility,
           ),
           SizedBox(height: 60.h),
           PrimaryButton(
             text: AuthText.login.toTitleCase(),
-            onTap: () => context.push(RoutesName.singUp),
+
+            /// Press login button
+            /// event add on auth bloc for user logging
+            onTap: () => context.read<AuthBloc>().add(
+              OnPressedLoginEvent(
+                email: emailCtrl.text.trim(),
+                password: passwordCtrl.text.trim(),
+              ),
+            ),
           ),
           SizedBox(height: 20.h),
           DeviderRow(),
@@ -47,20 +76,26 @@ class LoginForm extends StatelessWidget {
           Row(
             mainAxisAlignment: .center,
             children: [
-              Column(
-                spacing: 12.h,
-                children: [
-                  Container(
-                    height: 64.h,
-                    width: 64.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primary),
+              InkWell(
+                /// Here use can add the event for login with finger print
+                onTap: () =>
+                    context.read<AuthBloc>().add(LoginWithFingerPrintEvent()),
+                child: Column(
+                  mainAxisSize: .min,
+                  spacing: 12.h,
+                  children: [
+                    Container(
+                      height: 64.h,
+                      width: 64.w,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary),
+                      ),
+                      child: Icon(Icons.fingerprint, size: 24.r),
                     ),
-                    child: Icon(Icons.fingerprint, size: 24.r),
-                  ),
-                  ExtraSmallText(text: AuthText.fingerPrint),
-                ],
+                    ExtraSmallText(text: AuthText.fingerPrint),
+                  ],
+                ),
               ),
             ],
           ),

@@ -71,7 +71,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Row(
                       spacing: actionIcon2 != null ? 10.w : 0,
                       crossAxisAlignment: .center,
-
                       mainAxisAlignment: .end,
                       children: [
                         actionIcon1 != null

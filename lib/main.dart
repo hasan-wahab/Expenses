@@ -3,7 +3,7 @@ import 'package:expense_app/core/constant/themes/themes/themes.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/get_it.dart';
 import 'package:expense_app/core/router/route_generator.dart';
-import 'package:expense_app/features/auth/presentation/screen/auth_screen.dart';
+import 'package:expense_app/features/auth/presentation/screen/login_screen.dart';
 import 'package:expense_app/features/auth/presentation/screen/sign_up_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

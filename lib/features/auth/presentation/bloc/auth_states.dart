@@ -10,3 +10,8 @@ class LoginStatusState extends AuthStates {
 
   LoginStatusState({required this.status, this.message = ''});
 }
+
+class ObscurePasswordState extends AuthStates {
+  bool isObscure;
+  ObscurePasswordState({this.isObscure = true});
+}

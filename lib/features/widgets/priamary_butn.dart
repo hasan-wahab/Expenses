@@ -24,34 +24,36 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: isDisable ? null : onTap,
-      child: Container(
-        alignment: .center,
-        decoration: BoxDecoration(
-          color: !isOutline ? AppColors.primary : AppColors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          border: isOutline ? Border.all(color: AppColors.primary) : null,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowColor,
-              blurRadius: 3,
-              blurStyle: BlurStyle.outer,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        height: 48.h,
-        width: 350.w,
-        child: isDisable
-            ? CircularProgressIndicator(color: Colors.white)
-            : AppBarText(
-                text: text,
-                style:
-                    style ??
-                    context.appBarTextStyle!.copyWith(
-                      fontSize: !isOutline ? 20.sp : 12.sp,
-                      color: !isOutline ? Colors.white : AppColors.primary,
-                    ),
+      child: Card(
+        child: Container(
+          alignment: .center,
+          decoration: BoxDecoration(
+            color: !isOutline ? AppColors.primary : AppColors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: isOutline ? Border.all(color: AppColors.primary) : null,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadowColor,
+                blurRadius: 3,
+                blurStyle: BlurStyle.outer,
+                offset: Offset(0, 2),
               ),
+            ],
+          ),
+          height: 48.h,
+          width: 350.w,
+          child: isDisable
+              ? CircularProgressIndicator(color: Colors.white)
+              : AppBarText(
+                  text: text,
+                  style:
+                      style ??
+                      context.appBarTextStyle!.copyWith(
+                        fontSize: !isOutline ? 20.sp : 12.sp,
+                        color: !isOutline ? Colors.white : AppColors.primary,
+                      ),
+                ),
+        ),
       ),
     );
   }

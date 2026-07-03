@@ -2,6 +2,7 @@ import 'package:expense_app/core/constant/const_text/auth_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/extensions/string_extension.dart';
+import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/core/utils/validation_utils.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_events.dart';
@@ -17,6 +18,8 @@ import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app_settings/app_settings.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/get_it.dart';
@@ -33,6 +36,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailCtrl = TextEditingController();
   TextEditingController passwordCtrl = TextEditingController();
+  bool isObscure = true;
 
   @override
   Widget build(BuildContext context) {
@@ -41,17 +45,36 @@ class _LoginScreenState extends State<LoginScreen> {
       child: BlocListener<AuthBloc, AuthStates>(
         listener: (context, state) {
           if (state is LoginStatusState) {
+            /// Loading...
             if (state.status == Status.loading) {
-              context.showSnackBar('Loading');
-            }
-            if (state.status == Status.success) {
-              context.showSnackBar(state.message);
+              context.showCustomLoading();
             }
 
-            if (state.status == Status.error) {
-              print(state.message);
-              context.showSnackBar(state.message.toString());
+            /// If user User Successfully login then go to Nave Bar Page
+            if (state.status == Status.success) {
+              context.pop();
+              context.go(RoutesName.naveBar);
             }
+
+            /// If message is No_fingerprint then show the dialog for Device user
+            if (state.status == Status.error) {
+              context.pop();
+              if (state.message == 'No_Fingerprint') {
+                context.appSettings(
+                  type: AppSettingsType.security,
+                  title: 'Biometric no set',
+                  message:
+                      'No fingerprint is set up on this device. Please add a fingerprint in your device settings.',
+                );
+              } else {
+                /// Other message will show on display
+                context.showSnackBar(state.message.toString());
+              }
+            }
+          }
+          if (state is ObscurePasswordState) {
+            /// for the password visibility
+            isObscure = state.isObscure;
           }
         },
         child: BlocBuilder<AuthBloc, AuthStates>(
@@ -66,7 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     LoginHeader(),
 
                     /// Login Form
-                    LoginForm(),
+                    LoginForm(
+                      isObscure: isObscure,
+                      emailCtrl: emailCtrl,
+                      passwordCtrl: passwordCtrl,
+                    ),
 
                     /// Login footer
                     Row(

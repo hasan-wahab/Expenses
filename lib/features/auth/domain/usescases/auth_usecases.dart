@@ -24,4 +24,12 @@ class AuthUseCases {
       throw Exception('Please check your internet connections!');
     }
   }
+
+  Future loginWithFingerPrint() async {
+    await authRepoInter.loginWithFingerPrint();
+  }
+
+  bool obscurePassword({bool isObscure = true}) {
+    return isObscure = !isObscure;
+  }
 }

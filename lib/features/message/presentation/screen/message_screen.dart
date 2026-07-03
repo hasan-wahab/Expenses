@@ -5,9 +5,11 @@ import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class MessageScreen extends StatelessWidget {
-  const MessageScreen({super.key});
+  final String message;
+  const MessageScreen({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +39,13 @@ class MessageScreen extends StatelessWidget {
                   ),
                 ),
                 LargeText(text: 'Information'),
-                SmallText(
-                  align: .center,
-                  text:
-                      "We couldn't sync your recent expenses.Please check your internet connection and try again.",
-                ),
+                SmallText(align: .center, text: message),
 
-                PrimaryButton(isOutline: true, text: 'Go Back', onTap: () {}),
+                PrimaryButton(
+                  isOutline: true,
+                  text: 'Go Back',
+                  onTap: () => context.pop(),
+                ),
               ],
             ),
           ),

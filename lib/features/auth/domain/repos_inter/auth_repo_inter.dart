@@ -5,4 +5,5 @@ abstract class AuthRepoInter {
   Future create();
   Future<bool> logout();
   Future<User> getCurrentUser();
+  Future loginWithFingerPrint();
 }
