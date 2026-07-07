@@ -78,6 +78,7 @@ class LoginForm extends StatelessWidget {
             children: [
               InkWell(
                 /// Here use can add the event for login with finger print
+                // onTap: () =>context.push(RoutesName.settingsScreen),
                 onTap: () =>
                     context.read<AuthBloc>().add(LoginWithFingerPrintEvent()),
                 child: Column(

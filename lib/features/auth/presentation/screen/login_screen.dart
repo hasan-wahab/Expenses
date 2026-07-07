@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         SmallText(text: AuthText.dontHaveAccount),
                         InkWell(
-                          onTap: () {},
+                          onTap: () => context.push(RoutesName.singUp),
                           child: SmallText(
                             text: AuthText.signUp,
                             style: context.smallText!.copyWith(

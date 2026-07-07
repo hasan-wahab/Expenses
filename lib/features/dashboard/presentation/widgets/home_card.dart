@@ -2,6 +2,7 @@ import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/router/routes_name.dart';
+import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:expense_app/features/widgets/app_b_text.dart';
 import 'package:expense_app/features/widgets/extra_small_text.dart';
 import 'package:expense_app/features/widgets/large_text.dart';
@@ -11,7 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HomeCard extends StatelessWidget {
-  const HomeCard({super.key});
+  final DashboardCardEntity entity;
+  const HomeCard({super.key, required this.entity});
 
   @override
   Widget build(BuildContext context) {
@@ -56,13 +58,21 @@ class HomeCard extends StatelessWidget {
                       crossAxisAlignment: .start,
 
                       children: [
-                        SecondaryText(text: DashboardText.homeLocationName),
+                        SecondaryText(
+                          text: entity.propertyName != null
+                              ? entity.propertyName!
+                              : DashboardText.homeName,
+                        ),
                         Row(
                           mainAxisAlignment: .start,
                           mainAxisSize: .min,
                           children: [
                             Icon(Icons.location_on_outlined),
-                            SmallText(text: DashboardText.homeName),
+                            SmallText(
+                              text: entity.propertyLocation != null
+                                  ? entity.propertyLocation!
+                                  : DashboardText.homeLocationName,
+                            ),
                           ],
                         ),
                       ],

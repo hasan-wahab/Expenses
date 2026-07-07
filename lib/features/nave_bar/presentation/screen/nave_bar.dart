@@ -15,6 +15,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constant/const_text/dashboard_text.dart';
 import '../../../../core/constant/const_text/monthly_summary_text.dart';
+import '../../../../core/get_it.dart';
 
 class NaveBar extends StatelessWidget {
   const NaveBar({super.key});
@@ -39,7 +40,7 @@ class NaveBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => NaveBarBloc(),
+      create: (context) => sl<NaveBarBloc>(),
       child: BlocBuilder<NaveBarBloc, NaveBarStates>(
         builder: (context, state) {
           return Scaffold(

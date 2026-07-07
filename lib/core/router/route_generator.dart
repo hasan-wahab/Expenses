@@ -34,7 +34,7 @@ class RouteGenerator {
   );
 
   static GoRouter get route => GoRouter(
-    initialLocation: RoutesName.login,
+    initialLocation: RoutesName.naveBar,
     routes: [
       _goRoute(
         routeName: RoutesName.login,

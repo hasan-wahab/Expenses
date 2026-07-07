@@ -37,6 +37,7 @@ extension ContextExtension on BuildContext {
       );
   }
 
+  /// Loading dialog
   void showCustomLoading() {
     showDialog(
       context: this,
@@ -61,6 +62,8 @@ extension ContextExtension on BuildContext {
       },
     );
   }
+
+  /// App settings
 
   void appSettings({
     required AppSettingsType type,
