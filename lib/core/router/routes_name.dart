@@ -19,4 +19,5 @@ class RoutesName {
   static String get currencyScreen => '/currencyScreen';
   static String get naveBar => '/naveBar';
   static String get test => '/test';
+  static String get addPropertyScreen => '/addPropertyScreen';
 }

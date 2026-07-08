@@ -2,8 +2,8 @@ class DashboardCardEntity {
   final int? cardId;
   final String? propertyName;
   final String? propertyLocation;
-  final int? monthlyExpenses;
-  final int? monthlyBudget;
+  final double? monthlyExpenses;
+  final double? monthlyBudget;
   final double? progress;
   final String? imageUrl;
   final String? createAt;

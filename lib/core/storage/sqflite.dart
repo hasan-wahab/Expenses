@@ -30,7 +30,7 @@ class DBHelper {
         ''');
     await db.execute('''
           CREATE TABLE ${TableKeys.userTable}(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             name Text,
             email Text,
             token Text,
@@ -38,16 +38,24 @@ class DBHelper {
             updateAt Text
           )
         ''');
+    await db.execute('''
+          CREATE TABLE ${TableKeys.currentUserEmailTable}(
+            id INTEGER PRIMARY KEY,
+            email TEXT
+          )
+        ''');
 
     await db.execute('''
         CREATE TABLE ${TableKeys.propertyCardTable} (
-          cardId INTEGER PRIMARY KEY,
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT,
+          cardId INTEGER,
           propertyName TEXT,
           imageUrl TEXT,
           categoryType TEXT,
           createAt TEXT,
-          monthlyBudget INTEGER,
-          monthlyExpenses INTEGER,
+          monthlyBudget REAL,
+          monthlyExpenses REAL,
           progress REAL,
           updateAt TEXT,
           propertyLocation TEXT

@@ -12,43 +12,55 @@ import 'dashboard_states.dart';
 
 class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
   DashboardUseCase useCase;
-  late StreamSubscription subscription;
+  StreamSubscription? subscription;
+
   DashboardBloc({required this.useCase}) : super(DashboardInitial()) {
-    on<AddNewPropertyCardEvent>(_addNewPropertyCardEvent);
     on<GetCardListEvent>(_getPropertyCardEvent);
     on<SyncDataEvent>(_syncPropertyCardEvent);
     on<GetSyncDataEvent>(_getSyncPropertyCardEvent);
+
     add(SyncDataEvent());
   }
 
-  FutureOr<void> _addNewPropertyCardEvent(
-    AddNewPropertyCardEvent event,
-    Emitter<DashboardStates> emit,
-  ) async {
-    try {
-      emit(GetPropertyCardState(propertyCardList: [], status: Status.loading));
-      await useCase.saveProperty(model: event.model);
-      List<DashboardCardEntity> list = await useCase.getPropertyList();
-      emit(
-        GetPropertyCardState(propertyCardList: list, status: Status.success),
-      );
-    } catch (e) {
-      GetPropertyCardState(
-        propertyCardList: [],
-        status: Status.error,
-        message: e.toString(),
-      );
-    }
-  }
+  // FutureOr<void> _addNewPropertyCardEvent(AddNewPropertyCardEvent event,
+  //     Emitter<DashboardStates> emit,)
+  // async {
+  //   try {
+  //     /// Initial state of the Dashboard screen
+  //     emit(GetPropertyCardState(propertyCardList: [], status: Status.loading));
+  //
+  //     /// Save Property
+  //     await useCase.saveProperty(model: event.model);
+  //
+  //     /// Get Property
+  //     List<DashboardCardEntity> list = await useCase.getPropertyList();
+  //
+  //     /// Success State
+  //     emit(
+  //       GetPropertyCardState(propertyCardList: list, status: Status.success),
+  //     );
+  //   } catch (e) {
+  //     /// Error State
+  //     GetPropertyCardState(
+  //       propertyCardList: [],
+  //       status: Status.error,
+  //       message: e.toString(),
+  //     );
+  //   }
+  // }
 
   FutureOr<void> _getPropertyCardEvent(
     GetCardListEvent event,
     Emitter<DashboardStates> emit,
   ) async {
     try {
+      /// Initial state of the Dashboard screen
       emit(GetPropertyCardState(propertyCardList: [], status: Status.loading));
 
+      /// Get Property
       List<DashboardCardEntity> list = await useCase.getPropertyList();
+
+      /// Success State
       if (list.isEmpty) {
         emit(
           GetPropertyCardState(
@@ -58,11 +70,13 @@ class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
           ),
         );
       } else {
+        /// Success State
         emit(
           GetPropertyCardState(propertyCardList: list, status: Status.success),
         );
       }
     } catch (e) {
+      /// Error State
       GetPropertyCardState(
         propertyCardList: [],
         status: Status.error,
@@ -75,10 +89,14 @@ class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
     SyncDataEvent event,
     Emitter<DashboardStates> emit,
   ) async {
+    /// Continuously check for internet connectivity
     subscription = Connectivity().onConnectivityChanged.listen((result) async {
       if (await InternetUtils.isInternetAvailable()) {
+        /// Here we sync data from firebase to local storage
         await useCase.syncData();
         if (isClosed) return;
+
+        /// Get Sync Data Event to get data from local storage
         add(GetSyncDataEvent());
       }
     });
@@ -89,7 +107,10 @@ class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
     Emitter<DashboardStates> emit,
   ) async {
     try {
+      /// Initial state of the Dashboard screen
       List<DashboardCardEntity> list = await useCase.getPropertyList();
+
+      /// Success State
       if (list.isEmpty) {
         emit(
           GetPropertyCardState(
@@ -99,11 +120,13 @@ class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
           ),
         );
       } else {
+        /// Success State
         emit(
           GetPropertyCardState(propertyCardList: list, status: Status.success),
         );
       }
     } catch (e) {
+      /// Error State
       GetPropertyCardState(
         propertyCardList: [],
         status: Status.error,
@@ -114,7 +137,7 @@ class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
 
   @override
   Future<void> close() {
-    subscription.cancel();
+    if (subscription != null) subscription!.cancel();
     return super.close();
   }
 }

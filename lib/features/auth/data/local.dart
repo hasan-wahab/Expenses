@@ -23,18 +23,40 @@ class AuthLocal {
 
   Future<UserModel> getUser() async {
     try {
-      List result = await sqfLiteCurd.get(
+      List<Map<String, dynamic>> result = await sqfLiteCurd.get(
         tableKey: TableKeys.userTable,
-        limit: 1,
       );
-
       if (result.isNotEmpty) {
-        final user = UserModel.fromMap(result.last);
-
-        return user;
+        return UserModel.fromMap(result.first); // ✅ direct
       }
+      throw Exception('User not found');
+    } on Exception {
+      rethrow;
+    }
+  }
 
-      throw Exception('User not fount');
+  Future saveCurrentUserEmail({required String email}) async {
+    try {
+      await sqfLiteCurd.delete(tableKey: TableKeys.currentUserEmailTable);
+      await sqfLiteCurd.save(
+        tableKey: TableKeys.currentUserEmailTable,
+        value: {'email': email},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<String> getCurrentUserEmail() async {
+    try {
+      List result = await sqfLiteCurd.get(
+        tableKey: TableKeys.currentUserEmailTable,
+      );
+      if (result.isNotEmpty) {
+        return result.first['email'];
+      }
+      throw Exception('User not found');
     } on Exception {
       rethrow;
     }

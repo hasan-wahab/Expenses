@@ -1,5 +1,8 @@
 import 'package:expense_app/core/storage/sqflite.dart';
 import 'package:expense_app/core/storage/sqflite_curd.dart';
+import 'package:expense_app/core/utils/image_picker.dart';
+import 'package:expense_app/features/add_property/domain/usescases/add_property_usecases.dart';
+import 'package:expense_app/features/add_property/presentation/bloc/add_property_bloc.dart';
 import 'package:expense_app/features/auth/data/local.dart';
 import 'package:expense_app/features/auth/data/remote.dart';
 import 'package:expense_app/features/auth/domain/repos_inter/auth_repo_inter.dart';
@@ -15,6 +18,8 @@ import 'package:expense_app/features/settings/data/local.dart';
 import 'package:expense_app/features/settings/domain/repos_inter/settings_interface.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:get_it/get_it.dart';
+
+import '../features/add_property/data/images/image_source_repo.dart';
 
 final sl = GetIt.instance;
 
@@ -48,12 +53,17 @@ void getITSetup() {
 
   /// Dashboard Remote
   sl
-    ..registerLazySingleton<DashboardRemote>(() => DashboardRemote())
+    ..registerLazySingleton<DashboardRemote>(
+      () => DashboardRemote(authRemote: sl<AuthRemote>()),
+    )
     /// Dashboard Remote
     ..registerLazySingleton<DashboardRepoInter>(() => sl<DashboardRemote>())
     /// Dashboard Local
     ..registerLazySingleton<DashboardLocal>(
-      () => DashboardLocal(sqfLiteCurd: sl<SqfLiteCurd>()),
+      () => DashboardLocal(
+        sqfLiteCurd: sl<SqfLiteCurd>(),
+        local: sl<AuthLocal>(),
+      ),
     )
     /// Dashboard Use Case
     ..registerLazySingleton<DashboardUseCase>(
@@ -82,5 +92,20 @@ void getITSetup() {
   /// Settings Bloc
   sl.registerFactory<SettingsBloc>(
     () => SettingsBloc(localRepo: sl<SettingsLocalRepo>()),
+  );
+  sl
+    ..registerLazySingleton<ImagePickerSource>(() => ImagePickerSource())
+    ..registerLazySingleton<ImageSourceRepo>(
+      () => ImageSourceRepo(imagePickerSource: sl<ImagePickerSource>()),
+    )
+    ..registerLazySingleton<AddPropertyUseCases>(
+      () => AddPropertyUseCases(
+        imageSourceRepo: sl<ImageSourceRepo>(),
+        dashboardRepoInter: sl<DashboardRemote>(),
+        local: sl<DashboardLocal>(),
+      ),
+    );
+  sl.registerFactory<AddPropertyBloc>(
+    () => AddPropertyBloc(useCases: sl<AddPropertyUseCases>()),
   );
 }

@@ -1,11 +1,7 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:expense_app/core/constant/app_key/table_keys.dart';
-import 'package:expense_app/core/extensions/date_extension.dart';
-import 'package:expense_app/core/storage/sqflite_curd.dart';
 import 'package:expense_app/features/auth/data/local.dart';
 import 'package:expense_app/features/auth/data/models/auth_model.dart';
 import 'package:expense_app/features/auth/domain/repos_inter/auth_repo_inter.dart';
@@ -23,6 +19,15 @@ class AuthRemote implements AuthRepoInter {
     try {
       /// User login with email and password
       await auth.signInWithEmailAndPassword(email: email, password: password);
+
+      /// Save Current user email in local
+      await authLocal.saveCurrentUserEmail(email: email);
+
+      /// Get current user from remote
+      UserModel model = await getCurrentUser(email: email);
+
+      /// Save current user data in local
+      await authLocal.saveUser(model: model);
     } on FirebaseAuthException catch (e) {
       throw e.code;
     }
@@ -62,16 +67,16 @@ class AuthRemote implements AuthRepoInter {
   }
 
   @override
-  Future<UserModel> getCurrentUser() async {
+  Future<UserModel> getCurrentUser({String? email}) async {
     try {
-      UserModel? userModel = await authLocal.getUser();
+      UserModel? userModel;
+      String currentUserEmail = await authLocal.getCurrentUserEmail();
       DocumentSnapshot docSnap = await firestore
-          .collection('User')
-          .doc(userModel.email)
+          .collection('Users')
+          .doc(currentUserEmail.isEmpty ? email : currentUserEmail)
           .get();
       final data = docSnap.data() as Map<String, dynamic>;
       userModel = UserModel.fromMap(data);
-      print(userModel.email);
 
       return userModel;
     } on Exception {

@@ -93,22 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
             floatingActionButton: AddNewFloatingButton(
               text: DashboardText.addNew,
-              onTap: () {
-                context.read<DashboardBloc>().add(
-                  AddNewPropertyCardEvent(
-                    model: DashboardCardEntity(
-                      createAt: DateTime.now().toString(),
-                      cardId: list.length + 1,
-                      monthlyBudget: 1000,
-                      monthlyExpenses: 200,
-                      progress: 0.07,
-                      propertyLocation: 'Peshawar',
-                      propertyName: 'My Home',
-                      categoryType: 'Cate',
-                    ),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
           );
         },

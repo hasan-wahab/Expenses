@@ -25,10 +25,17 @@ class SqfLiteCurd {
   Future<List<Map<String, dynamic>>> get({
     required String tableKey,
     int? limit,
+    String? where,
+    List<String>? whereArgs,
   }) async {
     try {
       final db = await dB.database;
-      final result = await db.query(tableKey, limit: limit);
+      final result = await db.query(
+        tableKey,
+        limit: limit,
+        where: where,
+        whereArgs: whereArgs,
+      );
       return result;
     } on Exception {
       rethrow;

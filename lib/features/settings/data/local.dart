@@ -47,6 +47,7 @@ class SettingsLocalRepo implements SettingsInterface {
   Future<SettingsEntityModel> settingsProfileCardData() async {
     UserModel userModel = UserModel();
     userModel = await authLocal.getUser();
+    print(userModel.email);
     if (userModel.email == '') {
       userModel = await authRemote.getCurrentUser();
     }

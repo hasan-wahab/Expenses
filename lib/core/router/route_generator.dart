@@ -5,6 +5,7 @@ import 'package:expense_app/features/auth/presentation/screen/sign_up_screen.dar
 import 'package:expense_app/features/budget_alerts/presentation/screen/budgets_alerts_screen.dart';
 import 'package:expense_app/features/comparison/presentation/screen/comparison_screen.dart';
 import 'package:expense_app/features/currency/presentation/screen/currency_screen.dart';
+import 'package:expense_app/features/add_property/presentation/screen/add_property_screen.dart';
 import 'package:expense_app/features/export_pdf/presentation/screen/export_to_pdf_screen.dart';
 import 'package:expense_app/features/loading/presentation/screen/loading_screen.dart';
 import 'package:expense_app/features/message/presentation/screen/message_screen.dart';
@@ -34,11 +35,15 @@ class RouteGenerator {
   );
 
   static GoRouter get route => GoRouter(
-    initialLocation: RoutesName.naveBar,
+    initialLocation: RoutesName.addPropertyScreen,
     routes: [
       _goRoute(
         routeName: RoutesName.login,
         screen: (context, state) => LoginScreen(),
+      ),
+      _goRoute(
+        routeName: RoutesName.addPropertyScreen,
+        screen: (context, state) => AddPropertyScreen(),
       ),
       _goRoute(
         routeName: RoutesName.singUp,
