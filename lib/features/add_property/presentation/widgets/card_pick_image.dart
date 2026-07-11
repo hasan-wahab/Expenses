@@ -4,11 +4,12 @@ import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CardPickImage extends StatelessWidget {
   final VoidCallback onTap;
-  final File? imageFile;
-  const CardPickImage({super.key, required this.onTap, this.imageFile});
+  final XFile? imagePath;
+  const CardPickImage({super.key, required this.onTap, this.imagePath});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +20,10 @@ class CardPickImage extends StatelessWidget {
           height: 160.h,
           width: .infinity,
           decoration: BoxDecoration(borderRadius: .circular(12.r)),
-          child: imageFile != null
+          child: imagePath != null
               ? ClipRRect(
                   borderRadius: .circular(12.r),
-                  child: Image.file(imageFile!, fit: .fill),
+                  child: Image.file(File(imagePath!.path), fit: .fill),
                 )
               : Column(
                   mainAxisSize: .min,

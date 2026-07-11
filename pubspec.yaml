@@ -27,6 +27,7 @@ dependencies:
   local_auth: ^3.0.1
   app_settings: ^7.0.0
   path: ^1.9.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

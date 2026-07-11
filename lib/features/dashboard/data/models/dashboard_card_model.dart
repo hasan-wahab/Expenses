@@ -4,14 +4,14 @@ import '../../domain/entitity/dashboard_card_entity.dart';
 
 class DashboardCardModel extends DashboardCardEntity {
   DashboardCardModel({
-    super.cardId,
+    required super.cardId,
     required super.propertyName,
-    super.imageUrl,
+    required super.imageUrl,
     required super.categoryType,
-    super.createAt,
-    required super.monthlyBudget,
-    required super.monthlyExpenses,
-    required super.progress,
+    required super.createAt,
+    super.monthlyBudget = 0.0,
+    super.monthlyExpenses = 0.0,
+    super.progress = 0.0,
     super.updateAt,
     required super.propertyLocation,
   });
@@ -38,9 +38,9 @@ class DashboardCardModel extends DashboardCardEntity {
       imageUrl: map['imageUrl'],
       categoryType: map['categoryType'],
       createAt: map['createAt'],
-      monthlyBudget: map['monthlyBudget'],
-      monthlyExpenses: map['monthlyExpenses'],
-      progress: map['progress'],
+      monthlyBudget: map['monthlyBudget'] ?? 0.0,
+      monthlyExpenses: map['monthlyExpenses'] ?? 0.0,
+      progress: map['progress'] ?? 0.0,
       updateAt: map['updateAt'],
       propertyLocation: map['propertyLocation'],
     );

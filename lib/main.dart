@@ -1,7 +1,7 @@
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/constant/themes/themes/themes.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
-import 'package:expense_app/core/get_it.dart';
+import 'package:expense_app/core/di/get_it.dart';
 import 'package:expense_app/core/router/route_generator.dart';
 import 'package:expense_app/features/auth/presentation/screen/login_screen.dart';
 import 'package:expense_app/features/auth/presentation/screen/sign_up_screen.dart';
@@ -19,7 +19,7 @@ Future<void> main() async {
       projectId: 'learningapp-4c35b',
     ),
   );
-  getITSetup();
+  await getITSetup();
 
   runApp(const MyApp());
 }
@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       builder: (context, child) {
         return MaterialApp.router(
+
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           theme: AppTheme.lightTheme,

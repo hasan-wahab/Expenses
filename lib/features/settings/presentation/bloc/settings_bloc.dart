@@ -20,7 +20,7 @@ class SettingsBloc extends Bloc<SettingsEvents, SettingsStates> {
     OnSettingsEvent event,
     Emitter<SettingsStates> emit,
   ) async {
-    //try {
+    try {
     emit(
       SettingsDataStates(
         entityModel: SettingsEntityModel(),
@@ -56,8 +56,8 @@ class SettingsBloc extends Bloc<SettingsEvents, SettingsStates> {
         status: Status.success,
       ),
     );
-    // } catch (e) {
-    //   print(e);
-    // }
+    } catch (e) {
+      print(e);
+    }
   }
 }

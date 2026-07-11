@@ -62,9 +62,23 @@ class DashboardUseCase {
     List<DashboardCardModel> list = await local.getPropertyList();
     if (list.isNotEmpty) {
       /// Save Property in Firebase
-      for (var element in list) {
-        await dashboardRepoInter.save(model: element);
+      if (await InternetUtils.isInternetAvailable()) {
+        for (var element in list) {
+          await dashboardRepoInter.save(model: element);
+        }
+      }
+    } else {
+      /// Get Property From Firebase
+      if (await InternetUtils.isInternetAvailable()) {
+        list = await dashboardRepoInter.get();
+        if (list.isNotEmpty) {
+          /// Save Property in Local Storage
+          for (var element in list) {
+            await local.addNewPropertyCard(model: element);
+          }
+        }
       }
     }
+    log('From Sync Data');
   }
 }

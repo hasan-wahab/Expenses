@@ -4,4 +4,5 @@ class TableKeys {
   static String get currentUserEmailTable => 'CURRENT_USER_EMAIL_TABLE';
   static String get fingerPrintTable => 'FINGER_PRINT_TABLE';
   static String get propertyCardTable => 'PROPERTY_CARD_TABLE';
+  static String get categoryTable => 'CATEGORY_TABLE';
 }

@@ -17,7 +17,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/get_it.dart';
+import '../../../../core/di/get_it.dart';
 
 class SignUpForm extends StatefulWidget {
   const SignUpForm({super.key});

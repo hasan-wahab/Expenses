@@ -1,7 +1,4 @@
-import 'dart:io';
-
-import 'package:cross_file/src/types/interface.dart';
-import 'package:expense_app/core/utils/image_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/utils/internet_utils.dart';
 import '../../../dashboard/data/local.dart';
@@ -20,12 +17,17 @@ class AddPropertyUseCases {
     required this.local,
   });
 
-  Future<File?> galleryImage() async {
+  Future<XFile?> galleryImage() async {
     return await imageSourceRepo.galleryImage();
   }
 
-  Future<File?> cameraImage() async {
+  Future<XFile?> cameraImage() async {
     return await imageSourceRepo.cameraImage();
+  }
+
+  /// Save Image File in local Dir storage
+  Future<String> saveImageFileInLocalDir(String tempPath) async {
+    return await imageSourceRepo.saveImageLocalDir(tempPath);
   }
 
   /// Save Property

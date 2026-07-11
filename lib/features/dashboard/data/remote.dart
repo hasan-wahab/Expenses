@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_app/features/auth/data/models/auth_model.dart';
 import 'package:expense_app/features/auth/data/remote.dart';
@@ -20,7 +22,10 @@ class DashboardRemote extends DashboardRepoInter {
           .doc(email)
           .collection('PropertyList')
           .doc(model.cardId.toString())
-          .set(model.toMap());
+          .set(model.toMap())
+          .timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      throw 'Please check your internet connection. Try again later';
     } on FirebaseException catch (e) {
       throw e.code;
     }
@@ -37,7 +42,9 @@ class DashboardRemote extends DashboardRepoInter {
           .collection('Property')
           .doc(email)
           .collection('PropertyList')
-          .get();
+          .orderBy('cardId', descending: true)
+          .get()
+          .timeout(const Duration(seconds: 15));
       List<DashboardCardModel> list = [];
 
       /// Loop Through Property List and convert to Model
@@ -47,6 +54,8 @@ class DashboardRemote extends DashboardRepoInter {
       return list;
     } on FirebaseException catch (e) {
       throw e.code;
+    } on TimeoutException {
+      throw 'Please check your internet connection. Try again later';
     } on Exception {
       rethrow;
     }
@@ -64,9 +73,12 @@ class DashboardRemote extends DashboardRepoInter {
           .doc(email)
           .collection('PropertyList')
           .doc(dashboardCardId)
-          .delete();
+          .delete()
+          .timeout(const Duration(seconds: 15));
     } on FirebaseException catch (e) {
       throw e.code;
+    } on TimeoutException {
+      throw 'Please check your internet connection. Try again later';
     }
   }
 
@@ -82,9 +94,12 @@ class DashboardRemote extends DashboardRepoInter {
           .doc(email)
           .collection('PropertyList')
           .doc(model.cardId.toString())
-          .update(model.toMap());
+          .update(model.toMap())
+          .timeout(const Duration(seconds: 15));
     } on FirebaseException catch (e) {
       throw e.code;
+    } on TimeoutException {
+      throw 'Please check your internet connection. Try again later';
     }
   }
 }

@@ -22,7 +22,7 @@ import 'package:go_router/go_router.dart';
 import 'package:app_settings/app_settings.dart';
 
 import '../../../../core/constant/enums.dart';
-import '../../../../core/get_it.dart';
+import '../../../../core/di/get_it.dart';
 import '../../../widgets/small_text.dart';
 import '../widgets/login_header.dart';
 

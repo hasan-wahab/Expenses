@@ -3,7 +3,7 @@ class AddExpenseText {
   static String get amount => 'Amount (Rs.)';
   static String get enterAmount => 'Enter amount';
   static String get category => 'Category';
-  static String get date => 'Date';
+  static String get date => 'Select date';
   static String get notes => 'Notes (Optional)';
   static String get addHere => 'Add notes here...';
   static String get uploadReceipt => 'Upload Receipt';

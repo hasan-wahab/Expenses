@@ -12,7 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/extensions/context_extension.dart';
-import '../../../../core/get_it.dart';
+import '../../../../core/di/get_it.dart';
 import '../bloc/settings_states.dart';
 
 class MinProfileInfoCard extends StatelessWidget {

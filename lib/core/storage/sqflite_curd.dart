@@ -43,10 +43,10 @@ class SqfLiteCurd {
   }
 
   /// Delete Data From Local Storage
-  Future delete({required String tableKey}) async {
+  Future delete({required String tableKey, where, whereArgs}) async {
     try {
       final db = await dB.database;
-      db.delete(tableKey);
+      db.delete(tableKey, whereArgs: whereArgs, where: where);
     } on Exception {
       rethrow;
     }

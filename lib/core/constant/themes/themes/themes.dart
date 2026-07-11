@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
+      splashFactory: InkRipple.splashFactory,
+
       useMaterial3: true,
       colorScheme: ColorScheme.light(
         brightness: Brightness.light,

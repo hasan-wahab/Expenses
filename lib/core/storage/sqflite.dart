@@ -46,20 +46,28 @@ class DBHelper {
         ''');
 
     await db.execute('''
-        CREATE TABLE ${TableKeys.propertyCardTable} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          email TEXT,
-          cardId INTEGER,
-          propertyName TEXT,
-          imageUrl TEXT,
-          categoryType TEXT,
-          createAt TEXT,
-          monthlyBudget REAL,
-          monthlyExpenses REAL,
-          progress REAL,
-          updateAt TEXT,
-          propertyLocation TEXT
-        )
-      ''');
+          CREATE TABLE ${TableKeys.propertyCardTable} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT,
+            cardId INTEGER,
+            propertyName TEXT,
+            imageUrl TEXT,
+            categoryType TEXT,
+            createAt TEXT,
+            monthlyBudget REAL,
+            monthlyExpenses REAL,
+            progress REAL,
+            updateAt TEXT,
+            propertyLocation TEXT,
+            UNIQUE(email, cardId)
+          )
+        ''');
+
+    await db.execute('''
+          CREATE TABLE ${TableKeys.categoryTable}(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            categoryName TEXT
+          )
+        ''');
   }
 }

@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 ///  Date Extensions
 extension DateExtensions on DateTime {
   ///  Display Date (e.g: 20 Jun 2026)
-  String toDisplayDate() {
+  String toDisplayWithMonthDate() {
     return DateFormat('dd MMM yyyy').format(this);
+  }
+
+  ///  Display Date (e.g: 20 Jun 2026)
+  String toDisplayDate() {
+    return DateFormat('dd/MM/yyyy').format(this);
   }
 
   ///  Full Date (e.g: Friday, 20 June 2026)

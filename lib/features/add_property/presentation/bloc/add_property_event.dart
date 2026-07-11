@@ -8,7 +8,18 @@ class OnPickImageEvent extends AddPropertyEvent {
   OnPickImageEvent({required this.imageSource});
 }
 
-class OnAddPropertyCardEvent extends AddPropertyEvent {
-  DashboardCardEntity model;
-  OnAddPropertyCardEvent({required this.model});
+class OnAddPropertyCardEvent extends DashboardCardEntity
+    implements AddPropertyEvent {
+  OnAddPropertyCardEvent({
+    required super.cardId,
+    required super.propertyName,
+    required super.propertyLocation,
+    super.monthlyExpenses,
+    required super.monthlyBudget,
+    required super.categoryType,
+    super.progress,
+    required super.createAt,
+    required super.imageUrl,
+    super.updateAt,
+  });
 }

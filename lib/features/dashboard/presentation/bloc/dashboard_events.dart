@@ -10,6 +10,5 @@ class AddNewPropertyCardEvent extends DashboardEvents {
 
 class GetCardListEvent extends DashboardEvents {}
 
-class SyncDataEvent extends DashboardEvents {}
 
-class GetSyncDataEvent extends DashboardEvents {}
+class RefreshPropertyListEvent extends DashboardEvents {}

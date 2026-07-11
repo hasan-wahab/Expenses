@@ -10,13 +10,13 @@ class AddPropertyInitialState extends AddPropertyStates {}
 
 class PickImageState extends AddPropertyStates {
   final Status status;
-  final File? image;
+  final XFile? imagePath;
   final String? message;
-  PickImageState({required this.status, this.image, this.message});
+  PickImageState({required this.status, this.imagePath, this.message});
 }
 
-class GetPropertyCardState extends AddPropertyStates {
+class GetAddedPropertyCardState extends AddPropertyStates {
   final Status status;
   final String? message;
-  GetPropertyCardState({required this.status, this.message});
+  GetAddedPropertyCardState({required this.status, this.message});
 }

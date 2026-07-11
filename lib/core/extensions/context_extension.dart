@@ -1,5 +1,9 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
+import 'package:expense_app/features/widgets/app_t_field.dart';
+import 'package:expense_app/features/widgets/priamary_butn.dart';
+import 'package:expense_app/features/widgets/secondery_text.dart';
+import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,14 +29,17 @@ extension ContextExtension on BuildContext {
   TextStyle? get extraSmallText => textTheme.bodySmall;
 
   /// Snack bar
-  void showSnackBar(String message) {
+  void showSnackBar(
+    String message, {
+    SnackBarBehavior snackBarBehavior = SnackBarBehavior.floating,
+  }) {
     ScaffoldMessenger.of(this)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           closeIconColor: AppColors.redColor,
           content: Text(message),
-          behavior: SnackBarBehavior.floating,
+          behavior: snackBarBehavior,
         ),
       );
   }
@@ -87,4 +94,14 @@ extension ContextExtension on BuildContext {
       ),
     );
   }
+
+  Future<DateTime?> showAppDatePicker() async {
+    return await showDatePicker(
+      context: this,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+  }
+
 }

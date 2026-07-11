@@ -14,10 +14,10 @@ class DashboardLocal {
 
   /// Save New Property in Local
   Future addNewPropertyCard({required DashboardCardModel model}) async {
-
     try {
       /// Get Current User Email
       String currentUserEmail = await local.getCurrentUserEmail();
+
       /// Save Property in Local
       /// Save Property with Current User Email
       await sqfLiteCurd.save(
@@ -35,6 +35,7 @@ class DashboardLocal {
     try {
       /// Get Current User Email
       String currentUserEmail = await local.getCurrentUserEmail();
+
       /// Get Property List From Local
       /// Get Property List with Current User Email
       final result = await sqfLiteCurd.get(
@@ -49,7 +50,7 @@ class DashboardLocal {
   }
 
   /// Delete
-  Future delete() async {
+  Future deleteAllTable() async {
     try {
       /// Delete Property From Local
       await sqfLiteCurd.delete(tableKey: TableKeys.propertyCardTable);
@@ -59,5 +60,14 @@ class DashboardLocal {
   }
 
   /// Update Property by Id
-  Future updatePropertyByID({required String dashboardCardId}) async {}
+  Future updatePropertyByID({
+    required String currentUserEmail,
+    required String dashboardCardId,
+  }) async {
+    await sqfLiteCurd.delete(
+      tableKey: TableKeys.propertyCardTable,
+      where: 'email = ? AND cardId = ?',
+      whereArgs: [currentUserEmail, dashboardCardId],
+    );
+  }
 }

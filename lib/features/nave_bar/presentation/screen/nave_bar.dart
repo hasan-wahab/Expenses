@@ -15,7 +15,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constant/const_text/dashboard_text.dart';
 import '../../../../core/constant/const_text/monthly_summary_text.dart';
-import '../../../../core/get_it.dart';
+import '../../../../core/di/get_it.dart';
 
 class NaveBar extends StatelessWidget {
   const NaveBar({super.key});

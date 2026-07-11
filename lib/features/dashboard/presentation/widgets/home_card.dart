@@ -1,15 +1,17 @@
+import 'dart:io';
+
 import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
-import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
-import 'package:expense_app/features/widgets/app_b_text.dart';
-import 'package:expense_app/features/widgets/extra_small_text.dart';
-import 'package:expense_app/features/widgets/large_text.dart';
+
 import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/router/routes_name.dart';
 
 class HomeCard extends StatelessWidget {
   final DashboardCardEntity entity;
@@ -36,19 +38,30 @@ class HomeCard extends StatelessWidget {
                 width: double.infinity,
                 height: 80.h,
                 child: Row(
+                  crossAxisAlignment: .start,
                   spacing: 16.w,
                   children: [
                     /// Image Container
-                    SizedBox(
-                      height: 80.h,
-                      width: 80.w,
-                      child: Card(
-                        surfaceTintColor: AppColors.primaryDark,
-                        borderOnForeground: true,
-                        margin: EdgeInsets.zero,
-                        shadowColor: AppColors.iconsColor,
-                        color: AppColors.bgColor,
-                        child: Icon(Icons.photo, size: 40.r),
+                    Card(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: .circular(12.r),
+                          border: .all(width: 2.w, color: AppColors.white),
+                        ),
+                        height: 80.h,
+                        width: 80.w,
+                        child: ClipRRect(
+                          borderRadius: .circular(12.r),
+                          child: entity.imageUrl != ''
+                              ? Image.file(
+                                  File(entity.imageUrl),
+                                  fit: .cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(Icons.image);
+                                  },
+                                )
+                              : Icon(Icons.image),
+                        ),
                       ),
                     ),
 
@@ -77,6 +90,78 @@ class HomeCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                    Spacer(),
+                    Card(
+                      child: PopupMenuButton<String>(
+                        surfaceTintColor: AppColors.primary,
+                        borderRadius: .circular(12.r),
+                        icon: Icon(Icons.more_vert), // 3 dots
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'add expense':
+                              context.push(RoutesName.addExpenseScreen);
+                              break;
+                            case 'summary':
+                              context.push(RoutesName.monthlySummary);
+                              break;
+                            case 'edit':
+                              context.push(
+                                RoutesName.addPropertyScreen,
+                                extra: entity.cardId,
+                              );
+                              break;
+                            case 'delete':
+                              context.showSnackBar(
+                                'Delete',
+                                snackBarBehavior: .fixed,
+                              );
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'add expense',
+                            child: Row(
+                              mainAxisAlignment: .spaceBetween,
+                              children: [
+                                Text('Add Expense'),
+                                Icon(Icons.arrow_forward_ios, size: 15.r),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'summary',
+                            child: Row(
+                              mainAxisAlignment: .spaceBetween,
+                              children: [
+                                Text('Summary'),
+                                Icon(Icons.arrow_forward_ios, size: 15.r),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              mainAxisAlignment: .spaceBetween,
+                              children: [
+                                Text('Edit'),
+                                Icon(Icons.arrow_forward_ios, size: 15.r),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              mainAxisAlignment: .spaceBetween,
+                              children: [
+                                Text('Delete'),
+                                Icon(Icons.arrow_forward_ios, size: 15.r),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -95,12 +180,16 @@ class HomeCard extends StatelessWidget {
                       mainAxisAlignment: .spaceBetween,
                       children: [
                         SecondaryText(
-                          text: 'Rs. 28,540',
+                          text: entity.monthlyExpenses.toString(),
                           style: context.secondaryText!.copyWith(
                             color: AppColors.primary,
                           ),
                         ),
-                        SmallText(text: DashboardText.budget),
+                        SmallText(
+                          text:
+                              DashboardText.budget +
+                              entity.monthlyBudget.toString(),
+                        ),
                       ],
                     ),
 
@@ -109,7 +198,7 @@ class HomeCard extends StatelessWidget {
                       minHeight: 12.h,
                       backgroundColor: AppColors.white,
 
-                      value: 0.6,
+                      value: entity.progress,
                       valueColor: AlwaysStoppedAnimation(AppColors.primary),
                       borderRadius: .circular(10.r),
                     ),
@@ -117,7 +206,7 @@ class HomeCard extends StatelessWidget {
                       mainAxisAlignment: .end,
                       children: [
                         SmallText(
-                          text: '71%',
+                          text: '${entity.progress} %',
                           style: context.smallText!.copyWith(
                             color: AppColors.primary,
                             fontWeight: .bold,

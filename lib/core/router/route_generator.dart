@@ -35,7 +35,7 @@ class RouteGenerator {
   );
 
   static GoRouter get route => GoRouter(
-    initialLocation: RoutesName.addPropertyScreen,
+    initialLocation: RoutesName.login,
     routes: [
       _goRoute(
         routeName: RoutesName.login,
@@ -43,7 +43,9 @@ class RouteGenerator {
       ),
       _goRoute(
         routeName: RoutesName.addPropertyScreen,
-        screen: (context, state) => AddPropertyScreen(),
+        screen: (context, state) => AddPropertyScreen(
+          cardId: state.extra != null ? state.extra as int : 0,
+        ),
       ),
       _goRoute(
         routeName: RoutesName.singUp,

@@ -2,6 +2,10 @@ import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/router/routes_name.dart';
+import 'package:expense_app/features/auth/data/local.dart';
+import 'package:expense_app/features/auth/data/remote.dart';
+import 'package:expense_app/features/dashboard/data/local.dart';
+import 'package:expense_app/features/dashboard/data/remote.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
@@ -9,14 +13,17 @@ import 'package:expense_app/features/widgets/app_b_text.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
-import '../../../../core/get_it.dart';
+import '../../../../core/di/get_it.dart';
+import '../../../../core/storage/sqflite_curd.dart';
 import '../../../widgets/cusom_appbar.dart';
 import '../../../widgets/add_new_floating_btn.dart';
+import '../../../widgets/no_property_added.dart';
 import '../../domain/entitity/dashboard_card_entity.dart';
 import '../bloc/dashboard_states.dart';
 import '../widgets/home_card.dart';
@@ -37,18 +44,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       create: (context) => sl<DashboardBloc>()..add(GetCardListEvent()),
       child: BlocConsumer<DashboardBloc, DashboardStates>(
         listener: (context, state) {
+          print(state);
+
           if (state is GetPropertyCardState) {
-            if (state.status == Status.error) {
+            print(state.status);
+            if (state.status == Status.loading) {
+              context.showCustomLoading();
+            } else if (state.status == Status.error) {
               if (context.canPop()) {
                 context.pop();
                 context.showSnackBar(state.message);
               }
               context.showSnackBar(state.message);
-            }
-            if (state.status == Status.loading) {
-              context.showCustomLoading();
-            }
-            if (state.status == Status.success) {
+            } else if (state.status == Status.success) {
               if (context.canPop()) {
                 context.pop();
                 list = state.propertyCardList;
@@ -65,10 +73,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               actionIcon1: Icons.notifications_none,
             ),
             body: list.isEmpty
-                ? Center(child: SmallText(text: "No data found"))
+                ? NoPropertyAdded()
                 : RefreshIndicator(
                     onRefresh: () async {
-                      context.read<DashboardBloc>().add(SyncDataEvent());
+                      context.read<DashboardBloc>().add(
+                        RefreshPropertyListEvent(),
+                      );
                     },
                     child: ListView.builder(
                       itemCount: list.length,
@@ -79,22 +89,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Column(
                             children: [
                               /// Card
-                              InkWell(
-                                onTap: () {
-                                  context.push(RoutesName.monthlySummary);
-                                },
-                                child: HomeCard(entity: list[index]),
-                              ),
+                              HomeCard(entity: list[index]),
                             ],
                           ),
                         );
                       },
                     ),
                   ),
-            floatingActionButton: AddNewFloatingButton(
-              text: DashboardText.addNew,
-              onTap: () {},
-            ),
+            floatingActionButton: list.isEmpty
+                ? null
+                : AddNewFloatingButton(
+                    isExtended: false,
+                    text: DashboardText.addNew,
+                    onTap: () async {
+                      /// Navigate to Add Property screen and wait for result.
+                      /// If user successfully adds a property, screen will return true
+                      /// using context.pop(true).
+                      /// Based on this result, we refresh the dashboard list.
+                      final result = await context.push(
+                        RoutesName.addPropertyScreen,
+                        extra: list.length + 1,
+                      );
+                      if (result == true) {
+                        /// Refresh property list after successful addition
+                        if (!context.mounted) return;
+                        context.read<DashboardBloc>().add(GetCardListEvent());
+                      }
+                    },
+                  ),
           );
         },
       ),

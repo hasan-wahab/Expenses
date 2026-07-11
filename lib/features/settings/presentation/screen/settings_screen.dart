@@ -15,7 +15,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
-import '../../../../core/get_it.dart';
+import '../../../../core/di/get_it.dart';
 import '../widgets/account_settings.dart';
 import '../widgets/min_profile_info_card.dart';
 

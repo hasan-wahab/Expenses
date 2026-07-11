@@ -15,8 +15,11 @@ class AppTField extends StatelessWidget {
   final IconData? endIcon;
   final VoidCallback? endIconOnTap;
   final String? Function(String?)? validator;
+  final FocusNode? focusNode;
   bool isExtended;
   bool isObscure;
+  TextInputType? keyboardType;
+
   AppTField({
     super.key,
     required this.hintText,
@@ -28,6 +31,8 @@ class AppTField extends StatelessWidget {
     this.isExtended = false,
     this.endIconOnTap,
     this.isObscure = false,
+    this.focusNode,
+    this.keyboardType,
   });
 
   @override
@@ -44,6 +49,8 @@ class AppTField extends StatelessWidget {
             height: isExtended ? 86.h : 48.h,
             width: 350.w,
             child: CupertinoTextField.borderless(
+              focusNode: focusNode,
+              keyboardType: keyboardType,
               obscureText: isObscure,
               autofocus: false,
               padding: isExtended

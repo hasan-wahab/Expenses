@@ -18,7 +18,9 @@ class AuthRemote implements AuthRepoInter {
   Future login({required String email, required String password}) async {
     try {
       /// User login with email and password
-      await auth.signInWithEmailAndPassword(email: email, password: password);
+      await auth
+          .signInWithEmailAndPassword(email: email, password: password)
+          .timeout(const Duration(seconds: 15));
 
       /// Save Current user email in local
       await authLocal.saveCurrentUserEmail(email: email);
@@ -30,6 +32,8 @@ class AuthRemote implements AuthRepoInter {
       await authLocal.saveUser(model: model);
     } on FirebaseAuthException catch (e) {
       throw e.code;
+    } on TimeoutException {
+      throw 'Please check your internet connection. Try again later';
     }
   }
 
@@ -41,10 +45,9 @@ class AuthRemote implements AuthRepoInter {
   }) async {
     try {
       /// Create user account
-      await auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      await auth
+          .createUserWithEmailAndPassword(email: email, password: password)
+          .timeout(const Duration(seconds: 15));
 
       /// Convert data in to Model
       UserModel userModel = UserModel(
@@ -63,6 +66,8 @@ class AuthRemote implements AuthRepoInter {
       await firestore.collection('Users').doc(email).set(userModel.toMap());
     } on FirebaseAuthException catch (e) {
       throw e.code;
+    } on TimeoutException {
+      throw 'Please check your internet connection. Try again later';
     }
   }
 
@@ -74,11 +79,14 @@ class AuthRemote implements AuthRepoInter {
       DocumentSnapshot docSnap = await firestore
           .collection('Users')
           .doc(currentUserEmail.isEmpty ? email : currentUserEmail)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 15));
       final data = docSnap.data() as Map<String, dynamic>;
       userModel = UserModel.fromMap(data);
 
       return userModel;
+    } on TimeoutException {
+      throw 'Please check your internet connection. Try again later';
     } on Exception {
       rethrow;
     }
