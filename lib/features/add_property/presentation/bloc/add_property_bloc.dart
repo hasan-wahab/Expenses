@@ -6,6 +6,8 @@ import 'package:expense_app/features/add_property/presentation/bloc/add_property
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constant/enums.dart';
+import '../../../dashboard/data/models/property_card_model.dart';
+import '../../../dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'add_property_states.dart';
 
 class AddPropertyBloc extends Bloc<AddPropertyEvent, AddPropertyStates> {
@@ -13,6 +15,7 @@ class AddPropertyBloc extends Bloc<AddPropertyEvent, AddPropertyStates> {
   AddPropertyBloc({required this.useCases}) : super(AddPropertyInitialState()) {
     on<OnPickImageEvent>(_onPickImageEvent);
     on<OnAddPropertyCardEvent>(_addNew);
+    on<OnUpdatePropertyCardEvent>(_updateProperty);
   }
 
   FutureOr<void> _addNew(
@@ -76,6 +79,30 @@ class AddPropertyBloc extends Bloc<AddPropertyEvent, AddPropertyStates> {
       }
     } catch (e) {
       emit(PickImageState(status: Status.error, message: e.toString()));
+    }
+  }
+
+  FutureOr<void> _updateProperty(
+    OnUpdatePropertyCardEvent event,
+    Emitter<AddPropertyStates> emit,
+  ) async {
+    try {
+      emit(GetAddedPropertyCardState(status: Status.loading));
+      await useCases.updatePropertyCall(
+        model: PropertyModel.fromEntity(event.model),
+        propertyCardId: event.model.cardId.toString(),
+      );
+
+      emit(
+        GetAddedPropertyCardState(
+          status: Status.success,
+          message: 'Updated Successfully',
+        ),
+      );
+    } catch (e) {
+      emit(
+        GetAddedPropertyCardState(status: Status.error, message: e.toString()),
+      );
     }
   }
 }

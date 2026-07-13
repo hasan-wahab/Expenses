@@ -13,4 +13,7 @@ class OnAddPropertyCardEvent extends AddPropertyEvent {
   OnAddPropertyCardEvent({required this.model});
 }
 
-//
+class OnUpdatePropertyCardEvent extends AddPropertyEvent {
+  DashboardCardEntity model;
+  OnUpdatePropertyCardEvent({required this.model});
+}

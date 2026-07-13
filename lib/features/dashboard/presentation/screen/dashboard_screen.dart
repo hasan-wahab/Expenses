@@ -16,6 +16,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
+import '../../../../core/constant/wrapers.dart';
 import '../../../../core/di/get_it.dart';
 import '../../../../core/storage/sqflite_curd.dart';
 import '../../../widgets/cusom_appbar.dart';
@@ -88,7 +89,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 /// If user successfully adds a property, screen will return true
                 /// using context.pop(true).
                 /// Based on this result, we refresh the dashboard list.
-                final result = await context.push(RoutesName.addPropertyScreen);
+                final result = await context.push(
+                  RoutesName.addPropertyScreen,
+                  extra: AppPropertyArgs(mode: AddPropertyMode.add),
+                );
                 if (result == true) {
                   /// Refresh property list after successful addition
                   if (!context.mounted) return;

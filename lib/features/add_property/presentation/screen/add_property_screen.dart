@@ -9,6 +9,7 @@ import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/add_property/presentation/bloc/add_property_bloc.dart';
 import 'package:expense_app/features/add_property/presentation/widgets/category_droupdown.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
+import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
 import 'package:expense_app/features/widgets/app_t_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,9 +27,14 @@ import '../bloc/add_property_states.dart';
 import '../widgets/card_pick_image.dart';
 
 class AddPropertyScreen extends StatefulWidget {
-  final DashboardCardEntity? dashboardCardEntity;
+  final DashboardCardEntity? cardEntity;
+  final AddPropertyMode? mode;
 
-  const AddPropertyScreen({super.key, required this.dashboardCardEntity});
+  const AddPropertyScreen({
+    super.key,
+    required this.cardEntity,
+    this.mode = AddPropertyMode.add,
+  });
 
   @override
   State<AddPropertyScreen> createState() => _AddPropertyScreenState();
@@ -44,20 +50,18 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
   @override
   void initState() {
+    final property = widget.cardEntity;
     propertyNameController = TextEditingController(
-      text: widget.dashboardCardEntity?.propertyName,
+      text: property?.propertyName,
     );
     propertyLocationController = TextEditingController(
-      text: widget.dashboardCardEntity?.propertyLocation,
+      text: property?.propertyLocation,
     );
     targetBudgetController = TextEditingController(
-      text: widget.dashboardCardEntity?.monthlyBudget.toString(),
+      text: property?.monthlyBudget.toString(),
     );
-    propertyType = widget.dashboardCardEntity?.categoryType ?? '';
-    image = widget.dashboardCardEntity != null
-        ? XFile(widget.dashboardCardEntity!.imageUrl)
-        : image;
-    print(propertyType);
+    propertyType = property?.categoryType ?? '';
+    image = property != null ? XFile(property.imageUrl) : image;
     super.initState();
   }
 
@@ -151,24 +155,35 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
                 /// Save Button
                 PrimaryButton(
-                  text: 'Save Property',
+                  text: widget.mode == AddPropertyMode.update
+                      ? 'Update Property'
+                      : 'Save Property',
                   onTap: () {
-                    context.read<AddPropertyBloc>().add(
-                      OnAddPropertyCardEvent(
-                        model: DashboardCardEntity(
-                          syncStatus: SyncStatus.pending,
-                          propertyName: propertyNameController.text,
-                          monthlyBudget: double.parse(
-                            targetBudgetController.text,
-                          ),
-                          cardId: DateTime.now().microsecondsSinceEpoch,
-                          createAt: DateTime.now().toString(),
-                          propertyLocation: propertyLocationController.text,
-                          categoryType: propertyType,
-                          imageUrl: image?.path != null ? image!.path : '',
-                        ),
-                      ),
+                    final model = DashboardCardEntity(
+                      cardId: DateTime.now().microsecondsSinceEpoch,
+                      propertyName: propertyNameController.text,
+                      monthlyBudget: double.parse(targetBudgetController.text),
+                      propertyLocation: propertyLocationController.text,
+                      imageUrl: image?.path != null ? image!.path : '',
+                      syncStatus: SyncStatus.pending,
+                      createAt: DateTime.now().toString(),
+                      categoryType: propertyType,
                     );
+                    if (widget.mode == AddPropertyMode.add) {
+                      context.read<AddPropertyBloc>().add(
+                        OnAddPropertyCardEvent(model: model),
+                      );
+                    } else {
+                      context.read<AddPropertyBloc>().add(
+                        OnUpdatePropertyCardEvent(
+                          model: model.copyWith(
+                            cardId: widget.cardEntity!.cardId,
+                            updateAt: DateTime.now().toString(),
+                            createAt: widget.cardEntity!.createAt,
+                          ),
+                        ),
+                      );
+                    }
                   },
                 ),
               ],

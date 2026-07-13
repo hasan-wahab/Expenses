@@ -15,6 +15,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constant/enums.dart';
+import '../../../../core/constant/wrapers.dart';
 import '../../../../core/router/routes_name.dart';
 
 class HomeCard extends StatelessWidget {
@@ -93,7 +95,7 @@ class HomeCard extends StatelessWidget {
                         surfaceTintColor: AppColors.primary,
                         borderRadius: .circular(12.r),
                         icon: Icon(Icons.more_vert), // 3 dots
-                        onSelected: (value) {
+                        onSelected: (value) async {
                           switch (value) {
                             case 'add expense':
                               context.push(RoutesName.addExpenseScreen);
@@ -102,10 +104,19 @@ class HomeCard extends StatelessWidget {
                               context.push(RoutesName.monthlySummary);
                               break;
                             case 'edit':
-                              context.push(
+                              final result = await context.push(
                                 RoutesName.addPropertyScreen,
-                                extra: entity,
+                                extra: AppPropertyArgs(
+                                  mode: AddPropertyMode.update,
+                                  cardEntity: entity,
+                                ),
                               );
+                              if (result == true) {
+                                if (!context.mounted) return;
+                                context.read<DashboardBloc>().add(
+                                  GetPropertiesEvent(),
+                                );
+                              }
                               break;
                             case 'delete':
                               print(entity.cardId);

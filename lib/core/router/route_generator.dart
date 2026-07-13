@@ -24,6 +24,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/dashboard/presentation/screen/dashboard_screen.dart';
 import '../../features/sync_data/presentation/screen/sync_data_screen.dart';
+import '../constant/enums.dart';
+import '../constant/wrapers.dart';
 
 class RouteGenerator {
   static GoRoute _goRoute({
@@ -45,11 +47,13 @@ class RouteGenerator {
       ),
       _goRoute(
         routeName: RoutesName.addPropertyScreen,
-        screen: (context, state) => AddPropertyScreen(
-          dashboardCardEntity: state.extra != null
-              ? state.extra as DashboardCardEntity
-              : null,
-        ),
+        screen: (context, state) {
+          final args = state.extra as AppPropertyArgs;
+          return AddPropertyScreen(
+            cardEntity: args.cardEntity,
+            mode: args.mode,
+          );
+        },
       ),
       _goRoute(
         routeName: RoutesName.syncDataScreen,

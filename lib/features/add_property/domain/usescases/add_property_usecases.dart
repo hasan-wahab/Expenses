@@ -35,4 +35,20 @@ class AddPropertyUseCases {
   Future<List<String>> getCategoryListCall() async {
     return await propertyRepo.getCategoryList();
   }
+
+  Future<List<DashboardCardEntity>> getPropertiesListCall() async {
+    List<PropertyModel> list = await propertyRepo.get();
+    return list.map((e) => e.toEntity()).toList();
+  }
+
+  Future updatePropertyCall({
+    required DashboardCardEntity model,
+    required String propertyCardId,
+  }) async {
+    await propertyRepo.update(
+      model: PropertyModel.fromEntity(model),
+      propertyCardId: propertyCardId,
+    );
+  }
+
 }

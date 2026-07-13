@@ -14,11 +14,6 @@ class DeletePropertyEvent extends DashboardEvents {
   DeletePropertyEvent({required this.entity});
 }
 
-class UpdatePropertyEvent extends DashboardEvents {
-  final DashboardCardEntity entity;
-  UpdatePropertyEvent({required this.entity});
-}
-
 class SyncPropertiesNewAndDeletedEvent extends DashboardEvents {}
 
 class UpdatePropertiesSyncEvent extends DashboardEvents {}

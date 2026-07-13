@@ -21,6 +21,7 @@ class SyncDataScreen extends StatelessWidget {
       child: BlocConsumer<SyncDataBloc, SyncDataStates>(
         listener: (context, state) {
           if (state is SyncDataLoadedState) {
+            print(state);
             context.go(RoutesName.naveBar);
           }
         },

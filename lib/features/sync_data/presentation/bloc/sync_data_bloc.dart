@@ -17,7 +17,9 @@ class SyncDataBloc extends Bloc<SyncDataEvent, SyncDataStates> {
   ) async {
     try {
       emit(SyncDataLoadingState());
+
       await useCases.syncDataCall();
+      await Future.delayed(Duration(seconds: 2));
       emit(SyncDataLoadedState());
     } catch (e) {
       print(e);
