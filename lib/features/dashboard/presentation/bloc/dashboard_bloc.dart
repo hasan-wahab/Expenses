@@ -1,104 +1,60 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:expense_app/core/utils/internet_utils.dart';
+import 'package:expense_app/core/constant/enums.dart';
+import 'package:expense_app/features/dashboard/data/models/property_card_model.dart';
+import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:expense_app/features/dashboard/domain/usescases/dashboard_use_case.dart';
-import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
-import 'package:flutter/foundation.dart';
 
-import '../../../../core/constant/enums.dart';
-import '../../domain/entitity/dashboard_card_entity.dart';
+import 'dashboard_events.dart';
 import 'dashboard_states.dart';
 
 class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
   DashboardUseCase useCase;
-  StreamSubscription? subscription;
-
   DashboardBloc({required this.useCase}) : super(DashboardInitial()) {
-    on<GetCardListEvent>(_getPropertyCardEvent);
-    on<RefreshPropertyListEvent>(_refreshPropertyListEvent);
+    on<GetPropertiesEvent>(_getProperties);
+    on<DeletePropertyEvent>(_deleteProperty);
   }
 
-  FutureOr<void> _getPropertyCardEvent(
-    GetCardListEvent event,
+  FutureOr<void> _getProperties(
+    GetPropertiesEvent event,
     Emitter<DashboardStates> emit,
   ) async {
     try {
-      /// Initial state of the Dashboard screen
-      emit(GetPropertyCardState(propertyCardList: [], status: Status.loading));
-      await useCase.syncData();
+      emit(GetProperties(list: [], status: Status.loading));
+      List<DashboardCardEntity> model = await useCase.getPropertiesListCall();
 
-      /// Get Property
-      List<DashboardCardEntity> list = await useCase.getPropertyList();
-
-      /// Success State
-      if (list.isEmpty) {
-        if (kDebugMode) {
-          print('No data found');
-        }
-        emit(
-          GetPropertyCardState(propertyCardList: list, status: Status.success),
-        );
-      } else {
-        /// Success State
-        emit(
-          GetPropertyCardState(propertyCardList: list, status: Status.success),
-        );
-      }
+      emit(GetProperties(list: model, status: Status.success));
     } catch (e) {
-      /// Error State
       emit(
-        GetPropertyCardState(
-          propertyCardList: [],
+        GetProperties(
+          list: [],
           status: Status.error,
-          message: e.toString(),
+          errorMessage: e.toString(),
         ),
       );
     }
   }
 
-  FutureOr<void> _refreshPropertyListEvent(
-    RefreshPropertyListEvent event,
+  FutureOr<void> _deleteProperty(
+    DeletePropertyEvent event,
     Emitter<DashboardStates> emit,
   ) async {
     try {
-      emit(GetPropertyCardState(propertyCardList: [], status: Status.loading));
-      await useCase.syncData();
-
-      /// Initial state of the Dashboard screen
-      List<DashboardCardEntity> list = await useCase.getPropertyList();
-
-      /// Success State
-      if (list.isEmpty) {
-        if (kDebugMode) {
-          print('No data found');
-        }
-        emit(
-          GetPropertyCardState(propertyCardList: list, status: Status.success),
-        );
-      } else {
-        /// Success State
-        emit(
-          GetPropertyCardState(propertyCardList: list, status: Status.success),
-        );
-      }
+      emit(GetProperties(list: [], status: Status.loading));
+      await useCase.deletePropertyCall(
+        model: PropertyModel.fromEntity(event.entity),
+      );
+      List<DashboardCardEntity> list = await useCase.getPropertiesListCall();
+      emit(GetProperties(list: list, status: Status.success));
     } catch (e) {
-
-      /// Error State
       emit(
-        GetPropertyCardState(
-          propertyCardList: [],
+        GetProperties(
+          list: [],
           status: Status.error,
-          message: e.toString(),
+          errorMessage: e.toString(),
         ),
       );
     }
-  }
-
-  @override
-  Future<void> close() {
-    if (subscription != null) subscription!.cancel();
-    return super.close();
   }
 }

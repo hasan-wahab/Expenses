@@ -19,6 +19,7 @@ class AppTField extends StatelessWidget {
   bool isExtended;
   bool isObscure;
   TextInputType? keyboardType;
+  final String? Function(String)? onChanged;
 
   AppTField({
     super.key,
@@ -33,6 +34,7 @@ class AppTField extends StatelessWidget {
     this.isObscure = false,
     this.focusNode,
     this.keyboardType,
+    this.onChanged,
   });
 
   @override
@@ -49,6 +51,7 @@ class AppTField extends StatelessWidget {
             height: isExtended ? 86.h : 48.h,
             width: 350.w,
             child: CupertinoTextField.borderless(
+              onChanged: onChanged,
               focusNode: focusNode,
               keyboardType: keyboardType,
               obscureText: isObscure,

@@ -34,6 +34,7 @@ class DBHelper {
             name Text,
             email Text,
             token Text,
+            loginWith Text,
             createAt Text,
             updateAt Text
           )
@@ -58,6 +59,8 @@ class DBHelper {
             monthlyExpenses REAL,
             progress REAL,
             updateAt TEXT,
+            syncStatus TEXT,
+            isDeleted INTEGER,
             propertyLocation TEXT,
             UNIQUE(email, cardId)
           )

@@ -7,5 +7,5 @@ class SettingsStates {}
 class SettingsDataStates extends SettingsStates {
   Status status;
   SettingsEntityModel entityModel;
-  SettingsDataStates({required this.entityModel ,this.status = Status.initial});
+  SettingsDataStates({required this.entityModel, this.status = Status.initial});
 }

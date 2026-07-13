@@ -2,10 +2,7 @@ import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/router/routes_name.dart';
-import 'package:expense_app/features/auth/data/local.dart';
-import 'package:expense_app/features/auth/data/remote.dart';
-import 'package:expense_app/features/dashboard/data/local.dart';
-import 'package:expense_app/features/dashboard/data/remote.dart';
+
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
@@ -41,27 +38,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<DashboardBloc>()..add(GetCardListEvent()),
+      create: (context) => sl<DashboardBloc>()..add(GetPropertiesEvent()),
       child: BlocConsumer<DashboardBloc, DashboardStates>(
         listener: (context, state) {
-          print(state);
-
-          if (state is GetPropertyCardState) {
-            print(state.status);
+          if (state is GetProperties) {
             if (state.status == Status.loading) {
               context.showCustomLoading();
-            } else if (state.status == Status.error) {
-              if (context.canPop()) {
-                context.pop();
-                context.showSnackBar(state.message);
-              }
-              context.showSnackBar(state.message);
-            } else if (state.status == Status.success) {
-              if (context.canPop()) {
-                context.pop();
-                list = state.propertyCardList;
-              }
-              list = state.propertyCardList;
+            }
+            if (state.status == Status.success) {
+              print(state.status);
+              context.pop();
+              list = state.list;
+            }
+            if (state.status == Status.error) {
+              context.pop();
+              print(state.errorMessage);
             }
           }
         },
@@ -74,49 +65,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             body: list.isEmpty
                 ? NoPropertyAdded()
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<DashboardBloc>().add(
-                        RefreshPropertyListEvent(),
+                : ListView.builder(
+                    itemCount: list.length,
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: 24.h),
+                        child: Column(
+                          children: [
+                            /// Card
+                            HomeCard(entity: list[index]),
+                          ],
+                        ),
                       );
                     },
-                    child: ListView.builder(
-                      itemCount: list.length,
-                      padding: EdgeInsets.symmetric(horizontal: 20.w),
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: EdgeInsets.only(top: 24.h),
-                          child: Column(
-                            children: [
-                              /// Card
-                              HomeCard(entity: list[index]),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
                   ),
-            floatingActionButton: list.isEmpty
-                ? null
-                : AddNewFloatingButton(
-                    isExtended: false,
-                    text: DashboardText.addNew,
-                    onTap: () async {
-                      /// Navigate to Add Property screen and wait for result.
-                      /// If user successfully adds a property, screen will return true
-                      /// using context.pop(true).
-                      /// Based on this result, we refresh the dashboard list.
-                      final result = await context.push(
-                        RoutesName.addPropertyScreen,
-                        extra: list.length + 1,
-                      );
-                      if (result == true) {
-                        /// Refresh property list after successful addition
-                        if (!context.mounted) return;
-                        context.read<DashboardBloc>().add(GetCardListEvent());
-                      }
-                    },
-                  ),
+            floatingActionButton: AddNewFloatingButton(
+              isExtended: false,
+              text: DashboardText.addNew,
+              onTap: () async {
+                /// Navigate to Add Property screen and wait for result.
+                /// If user successfully adds a property, screen will return true
+                /// using context.pop(true).
+                /// Based on this result, we refresh the dashboard list.
+                final result = await context.push(RoutesName.addPropertyScreen);
+                if (result == true) {
+                  /// Refresh property list after successful addition
+                  if (!context.mounted) return;
+                  context.read<DashboardBloc>().add(GetPropertiesEvent());
+                }
+              },
+            ),
           );
         },
       ),

@@ -20,3 +20,5 @@ class GetAddedPropertyCardState extends AddPropertyStates {
   final String? message;
   GetAddedPropertyCardState({required this.status, this.message});
 }
+
+//

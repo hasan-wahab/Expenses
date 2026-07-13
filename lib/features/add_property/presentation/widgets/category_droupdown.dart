@@ -9,7 +9,13 @@ import '../../../../core/constant/themes/themes/colors.dart';
 class CategoryDropdown extends StatelessWidget {
   final Function(String)? onChange;
   ValueNotifier? selectedItem;
-  CategoryDropdown({super.key, this.onChange, this.selectedItem});
+  String initialValue;
+  CategoryDropdown({
+    super.key,
+    this.onChange,
+    this.selectedItem,
+    required this.initialValue,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +36,7 @@ class CategoryDropdown extends StatelessWidget {
               ),
             ),
             isExpanded: true,
-            hint: Text('Select Item'),
+            hint: Text(initialValue != '' ? initialValue : 'Select Item'),
             valueListenable: selectedItem,
             items: [
               DropdownItem(value: 'Home', child: Text('Home')),

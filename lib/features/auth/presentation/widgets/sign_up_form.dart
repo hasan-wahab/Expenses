@@ -18,6 +18,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/get_it.dart';
+import '../../../../core/utils/validation_utils.dart';
 
 class SignUpForm extends StatefulWidget {
   const SignUpForm({super.key});
@@ -44,11 +45,10 @@ class _SignUpFormState extends State<SignUpForm> {
               context.showCustomLoading();
             }
             if (state.status == Status.error) {
-              context.pop();
               context.showSnackBar(state.message);
             }
             if (state.status == Status.success) {
-              context.pop();
+              Navigator.of(context, rootNavigator: true).pop();
               context.showSnackBar(state.message);
               context.go(RoutesName.login);
             }
@@ -138,15 +138,17 @@ class _SignUpFormState extends State<SignUpForm> {
 
                 PrimaryButton(
                   text: AuthText.signUp,
-                  onTap: () => context.read<AuthBloc>().add(
-                    OnPressedCreateEvent(
-                      username: usernameCtr.text.trim(),
-                      email: emailCtr.text.trim(),
-                      password: passwordCtr.text.trim(),
-                      cPassword: cPasswordCtr.text.trim(),
-                      isAgree: isAgree,
-                    ),
-                  ),
+                  onTap: () {
+                    context.read<AuthBloc>().add(
+                      OnPressedCreateEvent(
+                        username: usernameCtr.text.trim(),
+                        email: emailCtr.text.trim(),
+                        password: passwordCtr.text.trim(),
+                        cPassword: cPasswordCtr.text.trim(),
+                        isAgree: isAgree,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

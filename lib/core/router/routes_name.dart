@@ -20,4 +20,5 @@ class RoutesName {
   static String get naveBar => '/naveBar';
   static String get test => '/test';
   static String get addPropertyScreen => '/addPropertyScreen';
+  static String get syncDataScreen => '/syncDataScreen';
 }

@@ -1,13 +1,17 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
+import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
 
 import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,6 +23,7 @@ class HomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(entity.cardId);
     return SizedBox(
       height: 218.h,
       width: 350.w,
@@ -71,21 +76,13 @@ class HomeCard extends StatelessWidget {
                       crossAxisAlignment: .start,
 
                       children: [
-                        SecondaryText(
-                          text: entity.propertyName != null
-                              ? entity.propertyName!
-                              : DashboardText.homeName,
-                        ),
+                        SecondaryText(text: entity.propertyName),
                         Row(
                           mainAxisAlignment: .start,
                           mainAxisSize: .min,
                           children: [
                             Icon(Icons.location_on_outlined),
-                            SmallText(
-                              text: entity.propertyLocation != null
-                                  ? entity.propertyLocation!
-                                  : DashboardText.homeLocationName,
-                            ),
+                            SmallText(text: entity.propertyLocation),
                           ],
                         ),
                       ],
@@ -107,13 +104,15 @@ class HomeCard extends StatelessWidget {
                             case 'edit':
                               context.push(
                                 RoutesName.addPropertyScreen,
-                                extra: entity.cardId,
+                                extra: entity,
                               );
                               break;
                             case 'delete':
-                              context.showSnackBar(
-                                'Delete',
-                                snackBarBehavior: .fixed,
+                              print(entity.cardId);
+                              context.read<DashboardBloc>().add(
+                                DeletePropertyEvent(
+                                  entity: entity.copyWith(isDeleted: true),
+                                ),
                               );
                               break;
                           }

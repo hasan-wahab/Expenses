@@ -1,20 +1,14 @@
 import 'package:expense_app/core/constant/app_key/table_keys.dart';
 import 'package:expense_app/core/storage/sqflite_curd.dart';
-import 'package:expense_app/features/auth/data/local.dart';
+
 import 'package:expense_app/features/auth/data/models/auth_model.dart';
-import 'package:expense_app/features/auth/data/remote.dart';
+
 import 'package:expense_app/features/settings/domain/entitity/settings_entity.dart';
 import 'package:expense_app/features/settings/domain/repos_inter/settings_interface.dart';
 
 class SettingsLocalRepo implements SettingsInterface {
-  AuthLocal authLocal;
-  AuthRemote authRemote;
   SqfLiteCurd sqfLiteCurd;
-  SettingsLocalRepo({
-    required this.sqfLiteCurd,
-    required this.authRemote,
-    required this.authLocal,
-  });
+  SettingsLocalRepo({required this.sqfLiteCurd});
 
   @override
   Future addFingerPrint() async {
@@ -46,10 +40,9 @@ class SettingsLocalRepo implements SettingsInterface {
   @override
   Future<SettingsEntityModel> settingsProfileCardData() async {
     UserModel userModel = UserModel();
-    userModel = await authLocal.getUser();
-    print(userModel.email);
-    if (userModel.email == '') {
-      userModel = await authRemote.getCurrentUser();
+    final result = await sqfLiteCurd.get(tableKey: TableKeys.userTable);
+    if (result.isNotEmpty) {
+      userModel = UserModel.fromMap(result.first);
     }
     SettingsEntityModel settingsEntityModel = SettingsEntityModel(
       name: userModel.name.toString(),

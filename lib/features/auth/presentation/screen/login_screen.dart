@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
             /// If user User Successfully login then go to Nave Bar Page
             if (state.status == Status.success) {
               context.pop();
-              context.go(RoutesName.naveBar);
+              context.push(RoutesName.syncDataScreen);
             }
 
             /// If message is No_fingerprint then show the dialog for Device user

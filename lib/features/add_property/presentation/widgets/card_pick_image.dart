@@ -20,7 +20,7 @@ class CardPickImage extends StatelessWidget {
           height: 160.h,
           width: .infinity,
           decoration: BoxDecoration(borderRadius: .circular(12.r)),
-          child: imagePath != null
+          child: imagePath != null && imagePath != ''
               ? ClipRRect(
                   borderRadius: .circular(12.r),
                   child: Image.file(File(imagePath!.path), fit: .fill),

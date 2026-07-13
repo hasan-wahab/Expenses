@@ -42,11 +42,25 @@ class SqfLiteCurd {
     }
   }
 
+  Future update({
+    required String tableKey,
+    required Map<String, dynamic> value,
+    where,
+    whereArgs,
+  }) async {
+    try {
+      final db = await dB.database;
+      await db.update(tableKey, value, where: where, whereArgs: whereArgs);
+    } on Exception {
+      rethrow;
+    }
+  }
+
   /// Delete Data From Local Storage
   Future delete({required String tableKey, where, whereArgs}) async {
     try {
       final db = await dB.database;
-      db.delete(tableKey, whereArgs: whereArgs, where: where);
+      await db.delete(tableKey, whereArgs: whereArgs, where: where);
     } on Exception {
       rethrow;
     }

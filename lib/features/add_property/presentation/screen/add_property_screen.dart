@@ -26,119 +26,93 @@ import '../bloc/add_property_states.dart';
 import '../widgets/card_pick_image.dart';
 
 class AddPropertyScreen extends StatefulWidget {
-  final int cardId;
-  const AddPropertyScreen({super.key, required this.cardId});
+  final DashboardCardEntity? dashboardCardEntity;
+
+  const AddPropertyScreen({super.key, required this.dashboardCardEntity});
 
   @override
   State<AddPropertyScreen> createState() => _AddPropertyScreenState();
 }
 
 class _AddPropertyScreenState extends State<AddPropertyScreen> {
-  XFile? pickImage;
-  TextEditingController propertyName = TextEditingController();
+  TextEditingController propertyNameController = TextEditingController();
+  TextEditingController propertyLocationController = TextEditingController();
+  TextEditingController targetBudgetController = TextEditingController();
+
   String propertyType = '';
-  TextEditingController propertyLocation = TextEditingController();
-  TextEditingController targetBudget = TextEditingController();
+  XFile? image;
+
+  @override
+  void initState() {
+    propertyNameController = TextEditingController(
+      text: widget.dashboardCardEntity?.propertyName,
+    );
+    propertyLocationController = TextEditingController(
+      text: widget.dashboardCardEntity?.propertyLocation,
+    );
+    targetBudgetController = TextEditingController(
+      text: widget.dashboardCardEntity?.monthlyBudget.toString(),
+    );
+    propertyType = widget.dashboardCardEntity?.categoryType ?? '';
+    image = widget.dashboardCardEntity != null
+        ? XFile(widget.dashboardCardEntity!.imageUrl)
+        : image;
+    print(propertyType);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgColor,
-      appBar: CustomAppBar(title: 'Add Property Card'),
-      body: BlocProvider(
-        create: (context) => sl<AddPropertyBloc>(),
-        child: BlocConsumer<AddPropertyBloc, AddPropertyStates>(
-          listener: (context, state) {
-            if (state is PickImageState) {
-              switch (state.status) {
-                case Status.initial:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
-                case Status.loading:
-
-                  /// Show Loading
-                  context.showCustomLoading();
-                case Status.success:
-
-                  /// Hide Loading
-                  if (context.canPop()) {
-                    context.pop();
-
-                    /// Assign Image Path to variable to show in UI
-                    pickImage = state.imagePath;
-                  }
-                  break;
-                case Status.error:
-
-                  /// Hide Loading
-                  if (context.canPop()) {
-                    context.pop();
-
-                    /// Show Error Message
-                    context.showSnackBar(state.message!);
-                  }
-                  break;
-                case Status.message:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
-              }
+    return BlocProvider(
+      create: (context) => sl<AddPropertyBloc>(),
+      child: BlocConsumer<AddPropertyBloc, AddPropertyStates>(
+        listener: (context, state) {
+          if (state is PickImageState) {
+            if (state.status == Status.loading) {
+              context.showCustomLoading();
             }
-            if (state is GetAddedPropertyCardState) {
-              switch (state.status) {
-                case Status.initial:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
-                case Status.loading:
-
-                  /// Show Loading
-                  context.showCustomLoading();
-                case Status.success:
-
-                  /// Hide Loading
-                  if (context.canPop()) {
-                    context.pop();
-
-                    /// Show Success Message
-                    context.showSnackBar(state.message!);
-
-                    /// Navigate to Dashboard Screen and pass true to value for refresh property list
-                    context.pop(true);
-                  }
-                  break;
-                case Status.error:
-
-                  /// Hide Loading
-                  if (context.canPop()) {
-                    context.pop();
-
-                    /// Show Error Message
-                    context.showSnackBar(state.message!);
-                  }
-                  break;
-                case Status.message:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
-              }
+            if (state.status == Status.success) {
+              context.pop();
+              image = state.imagePath;
             }
-          },
-          builder: (context, state) {
-            return ListView(
+            if (state.status == Status.error) {
+              print(state.message);
+            }
+          }
+          if (state is GetAddedPropertyCardState) {
+            print(state.status);
+            if (state.status == Status.success) {
+              context.pop(true);
+            }
+            if (state.status == Status.error) {
+              context.showSnackBar(state.message.toString());
+              print(state.message);
+            }
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: AppColors.bgColor,
+            appBar: CustomAppBar(title: 'Add Property Card'),
+            body: ListView(
               padding: .symmetric(horizontal: 20.w),
               children: [
                 SizedBox(height: 24.h),
 
                 /// Pick Image Container of the Property
                 CardPickImage(
-                  imagePath: pickImage,
-                  onTap: () => context.read<AddPropertyBloc>().add(
-                    OnPickImageEvent(imageSource: ImageSource.gallery),
-                  ),
+                  imagePath: image,
+                  onTap: () {
+                    context.read<AddPropertyBloc>().add(
+                      OnPickImageEvent(imageSource: ImageSource.gallery),
+                    );
+                  },
                 ),
                 SizedBox(height: 24.h),
 
                 /// Property Name Field
                 AppTField(
-                  controller: propertyName,
+                  controller: propertyNameController,
                   startIcon: Icons.home_filled,
                   hintText: 'Property Name...',
                   labelText: 'Property Name',
@@ -147,16 +121,18 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
                 /// Category Type Field
                 CategoryDropdown(
+                  initialValue: propertyType,
                   selectedItem: ValueNotifier(propertyType),
                   onChange: (value) {
                     propertyType = value;
+                    print(propertyType);
                   },
                 ),
                 SizedBox(height: 24.h),
 
                 /// Property Location Field
                 AppTField(
-                  controller: propertyLocation,
+                  controller: propertyLocationController,
                   startIcon: Icons.location_on,
                   hintText: 'Property Location...',
                   labelText: 'Property Location',
@@ -165,8 +141,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
                 /// Target Budget Field
                 AppTField(
+                  controller: targetBudgetController,
                   keyboardType: .number,
-                  controller: targetBudget,
                   startIcon: Icons.attach_money,
                   hintText: 'Target Budget...',
                   labelText: 'Target Budget',
@@ -179,25 +155,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   onTap: () {
                     context.read<AddPropertyBloc>().add(
                       OnAddPropertyCardEvent(
-                        cardId: widget.cardId,
-                        propertyName: propertyName.text,
-                        categoryType: propertyType,
-                        propertyLocation: propertyLocation.text,
-                        monthlyBudget: double.parse(
-                          targetBudget.text.isEmpty ? '0' : targetBudget.text,
+                        model: DashboardCardEntity(
+                          syncStatus: SyncStatus.pending,
+                          propertyName: propertyNameController.text,
+                          monthlyBudget: double.parse(
+                            targetBudgetController.text,
+                          ),
+                          cardId: DateTime.now().microsecondsSinceEpoch,
+                          createAt: DateTime.now().toString(),
+                          propertyLocation: propertyLocationController.text,
+                          categoryType: propertyType,
+                          imageUrl: image?.path != null ? image!.path : '',
                         ),
-                        imageUrl: pickImage?.path != null
-                            ? pickImage!.path
-                            : '',
-                        createAt: DateTime.now().toString(),
                       ),
                     );
                   },
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

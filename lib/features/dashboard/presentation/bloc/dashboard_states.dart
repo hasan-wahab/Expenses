@@ -5,15 +5,13 @@ abstract class DashboardStates {}
 
 class DashboardInitial extends DashboardStates {}
 
-class GetPropertyCardState extends DashboardStates {
-  List<DashboardCardEntity> propertyCardList;
+class GetProperties extends DashboardStates {
   Status status;
-
-  String message;
-
-  GetPropertyCardState({
-    required this.propertyCardList,
+  final List<DashboardCardEntity> list;
+  final String errorMessage;
+  GetProperties({
+    required this.list,
     required this.status,
-    this.message = '',
+    this.errorMessage = '',
   });
 }

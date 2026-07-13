@@ -25,11 +25,6 @@ class NoPropertyAdded extends StatelessWidget {
               text:
                   "No properties added yet.\n Tap Add New Property to get started.",
             ),
-            AddNewFloatingButton(
-              isExtended: true,
-              text: DashboardText.addNew,
-              onTap: () => context.push(RoutesName.addPropertyScreen, extra: 1),
-            ),
           ],
         ),
       ),

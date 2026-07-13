@@ -28,7 +28,7 @@ class ObsecurePasswordEvent extends AuthEvents {
 
 class LoginWithFingerPrintEvent extends AuthEvents {}
 
-class OnAgreeEvent extends AuthEvents{
+class OnAgreeEvent extends AuthEvents {
   bool isAgree;
   OnAgreeEvent({required this.isAgree});
 }
