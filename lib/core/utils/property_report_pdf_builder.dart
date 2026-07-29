@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 /// One expense row for PDF / preview.
 class PdfExpenseItem {
@@ -38,16 +37,7 @@ class PropertyReportPdfBuilder {
     required String reportingPeriod,
     List<PdfExpenseItem> expenses = const [],
   }) async {
-    pw.ThemeData? theme;
-    try {
-      final baseFont = await PdfGoogleFonts.notoSansRegular();
-      final boldFont = await PdfGoogleFonts.notoSansBold();
-      theme = pw.ThemeData.withFont(base: baseFont, bold: boldFont);
-    } catch (_) {
-      theme = null;
-    }
-
-    final doc = pw.Document(theme: theme);
+    final doc = pw.Document();
     doc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,

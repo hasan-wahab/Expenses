@@ -24,15 +24,15 @@ class SignUpScreen extends StatelessWidget {
             /// Sign Up Form Section
             SignUpForm(),
             SizedBox(height: 20.h),
-            DeviderRow(),
-            SizedBox(height: 20.h),
+           // DeviderRow(),
+            // SizedBox(height: 20.h),
 
-            /// Google Button
-            PrimaryButton(
-              text: 'Continue With Google',
-              isOutline: true,
-              onTap: () {},
-            ),
+            // /// Google Button
+            // PrimaryButton(
+            //   text: 'Continue With Google',
+            //   isOutline: true,
+            //   onTap: () {},
+            // ),
           ],
         ),
       ),

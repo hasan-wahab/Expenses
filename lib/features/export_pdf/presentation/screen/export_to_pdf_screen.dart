@@ -36,7 +36,9 @@ class ExportToPdfScreen extends StatefulWidget {
 
 class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
   List<DashboardCardEntity> cardEntities = [];
-  String? selectedCard;
+  String? selectedCardId;
+  String? selectedPropertyName;
+  String? selectedCardLocation;
   FutureOr<Uint8List>? pdfBytes;
 
   @override
@@ -102,16 +104,25 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
                 HeaderCard(),
                 SizedBox(height: 24.h),
                 PropertyCardDropdown(
-                  propertyCardId: selectedCard,
+                  propertyCardId: selectedCardId,
                   onSelected: (String? value) {
-                    selectedCard = value;
+                    for (var a in cardEntities) {
+                      if (a.cardId.toString() == value) {
+                        selectedCardLocation = a.propertyLocation;
+                        selectedPropertyName = a.propertyName;
+                        selectedCardId = a.cardId.toString();
+                        break;
+                      }
+                    }
                     setState(() {});
                   },
                   dashboardCardList: cardEntities,
                 ),
                 SizedBox(height: 24.h),
                 SelectionPeriodCard(
-                  propertyCardId: selectedCard??'',
+                  propertyCardId: selectedCardId ?? '',
+                  location: selectedCardLocation ?? '',
+                  propertyName: selectedPropertyName ?? '',
                 ),
               ],
             ),

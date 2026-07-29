@@ -15,13 +15,17 @@ class ExpenseLocalSource {
     required this.propertiesLocalSource,
   });
 
-  Future addNewExpense({required ExpenseModel model}) async {
+  Future addNewExpense({
+    required ExpenseModel model,
+    bool updateMonthlyTotal = true,
+  }) async {
     try {
       String currentUserEmail = await getCurrentUserEmail();
       await sqfLiteCurd.save(
         tableKey: TableKeys.expensesTable,
         value: {'email': currentUserEmail, ...model.toMap()},
       );
+      if (!updateMonthlyTotal) return;
 
       /// Get property list
       List<PropertyModel> propertyModel = await propertiesLocalSource

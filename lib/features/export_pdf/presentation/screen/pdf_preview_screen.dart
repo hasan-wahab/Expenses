@@ -21,22 +21,6 @@ import '../bloc/export_to_pdf_bloc.dart';
 import '../bloc/export_to_pdf_events.dart';
 import '../bloc/export_to_pdf_states.dart';
 
-// /// Args for PDF preview screen.
-// class PdfPreviewArgs {
-//   const PdfPreviewArgs({
-//     required this.propertyName,
-//     required this.location,
-//     required this.totalExpenses,
-//     required this.reportingPeriod,
-//     this.expenses = const [],
-//   });
-//
-//   final String propertyName;
-//   final String location;
-//   final String totalExpenses;
-//   final String reportingPeriod;
-//   final List<PdfExpenseItem> expenses;
-// }
 
 /// Shows the real generated PDF (not just design widgets).
 class PdfPreviewScreen extends StatefulWidget {

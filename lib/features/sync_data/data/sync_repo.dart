@@ -111,6 +111,7 @@ class SyncRepo {
         for (var item in allRemoteExpenses) {
           await expenseLocalSource.addNewExpense(
             model: item.copyWith(syncStatus: SyncStatus.synced.toString()),
+            updateMonthlyTotal: false,
           );
         }
       }

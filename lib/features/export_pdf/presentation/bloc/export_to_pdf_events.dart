@@ -6,6 +6,8 @@ abstract class ExportPdfEvents {}
 
 class ExportToPdfEvent extends ExportPdfEvents {
   final String propertyCardId;
+  final String propertyName;
+  final String location;
   ExportToPdfMode mode;
   DateTime? startDate;
   DateTime? endDate;
@@ -14,6 +16,8 @@ class ExportToPdfEvent extends ExportPdfEvents {
     required this.mode,
     this.startDate,
     this.endDate,
+    required this.propertyName,
+    required this.location,
   });
 }
 

@@ -19,7 +19,14 @@ import '../bloc/export_to_pdf_events.dart';
 
 class SelectionPeriodCard extends StatefulWidget {
   String propertyCardId;
-  SelectionPeriodCard({super.key, required this.propertyCardId});
+  String location;
+  String propertyName;
+  SelectionPeriodCard({
+    super.key,
+    required this.propertyCardId,
+    required this.location,
+    required this.propertyName,
+  });
 
   @override
   State<SelectionPeriodCard> createState() => _SelectionPeriodCardState();
@@ -145,6 +152,8 @@ class _SelectionPeriodCardState extends State<SelectionPeriodCard> {
               if (_isSelected[0] == true) {
                 context.read<ExportToPdfBloc>().add(
                   ExportToPdfEvent(
+                    propertyName: widget.propertyName,
+                    location: widget.location,
                     propertyCardId: widget.propertyCardId,
                     mode: ExportToPdfMode.thisMonth,
                   ),
@@ -152,6 +161,8 @@ class _SelectionPeriodCardState extends State<SelectionPeriodCard> {
               } else if (_isSelected[1] == true) {
                 context.read<ExportToPdfBloc>().add(
                   ExportToPdfEvent(
+                    propertyName: widget.propertyName,
+                    location: widget.location,
                     propertyCardId: widget.propertyCardId,
                     mode: ExportToPdfMode.lastQuarter,
                   ),
@@ -160,10 +171,12 @@ class _SelectionPeriodCardState extends State<SelectionPeriodCard> {
                 if (startDate != null && endDate != null) {
                   context.read<ExportToPdfBloc>().add(
                     ExportToPdfEvent(
-                      propertyCardId: widget.propertyCardId,
-                      mode: ExportToPdfMode.customRange,
                       startDate: startDate,
                       endDate: endDate,
+                      propertyName: widget.propertyName,
+                      location: widget.location,
+                      propertyCardId: widget.propertyCardId,
+                      mode: ExportToPdfMode.customRange,
                     ),
                   );
                 } else {

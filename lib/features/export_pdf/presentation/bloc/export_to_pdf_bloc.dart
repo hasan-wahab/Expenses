@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:expense_app/core/constant/enums.dart';
+import 'package:expense_app/core/extensions/date_extension.dart';
 import 'package:expense_app/core/utils/period_filtering_utils.dart';
 import 'package:expense_app/features/export_pdf/domain/usescases/export_to_pdf_usecases.dart';
 import 'export_to_pdf_events.dart';
@@ -29,9 +30,10 @@ class ExportToPdfBloc extends Bloc<ExportPdfEvents, ExportToPdfStates> {
             propertyCardId: event.propertyCardId,
             startDate: thisMonth.startDate,
             endDate: thisMonth.endDate,
-            propertyName: 'PropertyName',
-            location: 'Islamabad',
-            reportingPeriod: 'This Month',
+            propertyName: event.propertyName,
+            location: event.location,
+            reportingPeriod:
+                "${thisMonth.startDate.toDisplayDate()}  To  ${thisMonth.endDate.toDisplayDate()}",
           );
           emit(GetExpenseByPeriod(status: Status.success, pdfBytes: pdfBytes));
           break;
@@ -42,9 +44,10 @@ class ExportToPdfBloc extends Bloc<ExportPdfEvents, ExportToPdfStates> {
             propertyCardId: event.propertyCardId,
             startDate: lastQuarter.startDate,
             endDate: lastQuarter.endDate,
-            propertyName: 'PropertyName',
-            location: 'Islamabad',
-            reportingPeriod: 'Last Quarter',
+            propertyName: event.propertyName,
+            location: event.location,
+            reportingPeriod:
+                "${lastQuarter.startDate!.toDisplayDate()}  To  ${lastQuarter.endDate!.toDisplayDate()}",
           );
           emit(GetExpenseByPeriod(status: Status.success, pdfBytes: pdfBytes));
           break;
@@ -58,9 +61,10 @@ class ExportToPdfBloc extends Bloc<ExportPdfEvents, ExportToPdfStates> {
             propertyCardId: event.propertyCardId,
             startDate: customRange.startDate,
             endDate: customRange.endDate,
-            propertyName: 'PropertyName',
-            location: 'Islamabad',
-            reportingPeriod: 'Custom Range',
+            propertyName: event.propertyName,
+            location: event.location,
+            reportingPeriod:
+                "${event.startDate!.toDisplayDate()}  To  ${event.endDate!.toDisplayDate()}",
           );
           emit(GetExpenseByPeriod(status: Status.success, pdfBytes: pdfBytes));
           break;
