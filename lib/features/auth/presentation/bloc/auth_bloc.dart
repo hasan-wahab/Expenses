@@ -55,7 +55,7 @@ class AuthBloc extends Bloc<AuthEvents, AuthStates> {
         emit(
           SingUpStatusStates(
             status: Status.error,
-            message: 'All fields are required!',
+            message: 'All fieldss are required!',
           ),
         );
       } else if (event.password != event.cPassword) {
