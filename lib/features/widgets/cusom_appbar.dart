@@ -8,14 +8,16 @@ import 'app_b_text.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final IconData? leadingIcon;
+  bool isLeading = true;
   final IconData? actionIcon1;
   final IconData? actionIcon2;
   final VoidCallback? leadingOnTap;
   final VoidCallback? actionIcon1Ontap;
   final VoidCallback? actionIcon2Ontap;
   final String? profileImagePath;
-  const CustomAppBar({
+  CustomAppBar({
     super.key,
+    this.isLeading = false,
     required this.title,
     this.leadingIcon = Icons.arrow_back_ios,
     this.actionIcon1,
@@ -49,10 +51,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 spacing: 3.w,
                 mainAxisAlignment: .start,
                 children: [
-                  InkWell(
-                    onTap: leadingOnTap ?? () => context.pop(),
-                    child: Icon(leadingIcon),
-                  ),
+                  isLeading
+                      ? InkWell(
+                          onTap: leadingOnTap ?? () => context.pop(),
+                          child: Icon(leadingIcon),
+                        )
+                      : Container(),
                   AppBarText(text: title),
                 ],
               ),

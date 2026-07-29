@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:expense_app/core/constant/enums.dart';
+import 'package:expense_app/core/data_source/expense_data_source/expense_local_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/properties_remote_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/propertis_local_source.dart';
 import 'package:expense_app/features/dashboard/data/models/property_card_model.dart';
@@ -9,11 +10,8 @@ import 'package:expense_app/features/dashboard/domain/repos_inter/property_repo_
 
 class PropertyRepo implements PropertyRepoInter {
   PropertiesLocalSource propertiesLocalSource;
-  PropertiesRemoteSource propertiesRemoteSource;
-  PropertyRepo({
-    required this.propertiesLocalSource,
-    required this.propertiesRemoteSource,
-  });
+  ExpenseLocalSource expenseLocalSource;
+  PropertyRepo({required this.propertiesLocalSource,required this.expenseLocalSource});
   @override
   Future<dynamic> save({required PropertyModel model}) async {
     String currentUserEmail = await propertiesLocalSource.getCurrentUserEmail();
@@ -50,7 +48,7 @@ class PropertyRepo implements PropertyRepoInter {
   }
 
   @override
-  Future<dynamic> delete({required PropertyModel model}) async {
+  Future<dynamic> delete({required PropertyModel model,}) async {
     String currentUserEmail = await propertiesLocalSource.getCurrentUserEmail();
     await propertiesLocalSource.updateProperty(
       model: model,

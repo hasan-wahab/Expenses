@@ -32,6 +32,19 @@ class AuthLocalSource {
     }
   }
 
+  Future update({required UserModel model}) async {
+    try {
+      await sqfLiteCurd.update(
+        tableKey: TableKeys.userTable,
+        value: model.toMap(),
+        where: 'email = ?',
+        whereArgs: [model.email],
+      );
+    } on Exception {
+      rethrow;
+    }
+  }
+
   Future delete() async {
     try {
       await sqfLiteCurd.delete(tableKey: TableKeys.currentUserEmailTable);

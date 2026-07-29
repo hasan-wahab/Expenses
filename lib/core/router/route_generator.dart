@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/add_expenses/presentation/screen/add_expenses_screen.dart';
 import 'package:expense_app/features/auth/presentation/screen/login_screen.dart';
@@ -8,9 +11,9 @@ import 'package:expense_app/features/currency/presentation/screen/currency_scree
 import 'package:expense_app/features/add_property/presentation/screen/add_property_screen.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:expense_app/features/export_pdf/presentation/screen/export_to_pdf_screen.dart';
+import 'package:expense_app/features/export_pdf/presentation/screen/pdf_preview_screen.dart';
 import 'package:expense_app/features/loading/presentation/screen/loading_screen.dart';
 import 'package:expense_app/features/message/presentation/screen/message_screen.dart';
-import 'package:expense_app/features/monthly_summary/presentation/screen/monthly_summary_screen.dart';
 import 'package:expense_app/features/nave_bar/presentation/screen/nave_bar.dart';
 import 'package:expense_app/features/no_internet/presentation/screen/internet_status_screen.dart';
 import 'package:expense_app/features/notification/presentation/screen/notification_screen.dart';
@@ -21,8 +24,12 @@ import 'package:expense_app/features/settings/presentation/screen/settings_scree
 import 'package:expense_app/features/test.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pdf/pdf.dart';
 
+import '../../features/add_expenses/domain/entitity/add_expense_entity_model.dart';
+import '../../features/category_detail/presentation/screen/category_detail_screen.dart';
 import '../../features/dashboard/presentation/screen/dashboard_screen.dart';
+import '../../features/summary/presentation/screen/summary_screen.dart';
 import '../../features/sync_data/presentation/screen/sync_data_screen.dart';
 import '../constant/enums.dart';
 import '../constant/wrapers.dart';
@@ -57,7 +64,11 @@ class RouteGenerator {
       ),
       _goRoute(
         routeName: RoutesName.syncDataScreen,
-        screen: (context, state) => SyncDataScreen(),
+        screen: (context, state){
+          final args = state.extra as bool;
+          return SyncDataScreen(
+            isFingerPrint: args,
+          );}
       ),
       _goRoute(
         routeName: RoutesName.singUp,
@@ -103,11 +114,24 @@ class RouteGenerator {
       ),
       _goRoute(
         routeName: RoutesName.personalInfoScreen,
-        screen: (context, state) => PersonalInfoScreen(),
+        screen: (context, state) {
+          final args = state.extra as PersonalInfoArgs;
+          return PersonalInfoScreen(entityModel: args.entity!, mode: args.mode);
+        },
       ),
       _goRoute(
         routeName: RoutesName.exportToPdfScreen,
         screen: (context, state) => ExportToPdfScreen(),
+      ),
+      _goRoute(
+        routeName: RoutesName.pdfPreviewScreen,
+        screen: (context, state) {
+          final ags = state.extra as PdfPreviewArgs;
+          return PdfPreviewScreen(
+            propertyName: ags.propertyName,
+            build: ags.build,
+          );
+        },
       ),
       _goRoute(
         routeName: RoutesName.comparisonScreen,
@@ -115,7 +139,8 @@ class RouteGenerator {
       ),
       _goRoute(
         routeName: RoutesName.addExpenseScreen,
-        screen: (context, state) => AddExpensesScreen(),
+        screen: (context, state) =>
+            AddExpensesScreen(propertyCardId: state.extra as String),
       ),
       _goRoute(
         routeName: RoutesName.internetStatusScreen,
@@ -123,7 +148,18 @@ class RouteGenerator {
       ),
       _goRoute(
         routeName: RoutesName.monthlySummary,
-        screen: (context, state) => MonthlySummaryScreen(),
+        screen: (context, state) {
+          return SummaryScreen(propertyCardId: state.extra as int);
+        },
+      ),
+      _goRoute(
+        routeName: RoutesName.categoryDetailScreen,
+        screen: (context, state) {
+          return CategoryDetailScreen(
+            expenses: state.extra as List<ExpenseEntity>,
+          );
+          // return CategoryDetailScreen();
+        },
       ),
     ],
   );

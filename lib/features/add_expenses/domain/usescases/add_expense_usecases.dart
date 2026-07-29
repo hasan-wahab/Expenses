@@ -1,17 +1,31 @@
-import 'package:expense_app/features/add_expenses/data/local.dart';
+import 'package:expense_app/core/constant/app_key/table_keys.dart';
+import 'package:expense_app/features/add_expenses/data/expenses_repo.dart';
+import 'package:expense_app/features/add_expenses/domain/entitity/add_expense_entity_model.dart';
+import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
+
+import '../../data/models/expense_model.dart';
 
 class AddExpenseUseCases {
-  AddExpensesLocal addExpensesLocal;
-  AddExpenseUseCases({required this.addExpensesLocal});
+  ExpensesRepo expensesRepo;
+  AddExpenseUseCases({required this.expensesRepo});
 
-
-  Future addCategoryCall({required String categoryName})async{
-    await addExpensesLocal.addNewCategory(categoryName);
+  Future addCategoryCall({required String categoryName}) async {
+    await expensesRepo.addNewCategory(categoryName);
   }
-  Future<List<String>> getCategoriesCall({required String categoryName})async{
+
+  Future<List<String>> getCategoriesCall() async {
     List<String> categories = [];
-   categories= await addExpensesLocal.getCategories(categoryName);
-   return categories;
+    categories = await expensesRepo.getCategories();
+    return categories;
+  }
+
+  Future addNewExpenseCall({required ExpenseEntity entityModel}) async {
+    await expensesRepo.addNewExpense(
+      model: ExpenseModel.fromEntity(entityModel),
+    );
+  }
+
+  Future<List<DashboardCardEntity>> getPropertyCardCall() async {
+    return await expensesRepo.getPropertyCard();
   }
 }
-

@@ -40,13 +40,22 @@ class SettingsLocalRepo implements SettingsInterface {
   @override
   Future<SettingsEntityModel> settingsProfileCardData() async {
     UserModel userModel = UserModel();
-    final result = await sqfLiteCurd.get(tableKey: TableKeys.userTable);
+    List<Map<String, dynamic>> email = await sqfLiteCurd.get(
+      tableKey: TableKeys.currentUserEmailTable,
+    );
+    final result = await sqfLiteCurd.get(
+      tableKey: TableKeys.userTable,
+      whereArgs: [email.first['email']],
+      where: 'email = ?',
+    );
     if (result.isNotEmpty) {
       userModel = UserModel.fromMap(result.first);
     }
     SettingsEntityModel settingsEntityModel = SettingsEntityModel(
       name: userModel.name.toString(),
       email: userModel.email.toString(),
+      phone: userModel.phone.toString(),
+      imageUrl: userModel.imageUrl.toString(),
     );
     return settingsEntityModel;
   }

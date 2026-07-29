@@ -52,8 +52,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
             /// If user User Successfully login then go to Nave Bar Page
             if (state.status == Status.success) {
-              context.pop();
-              context.push(RoutesName.syncDataScreen);
+              if (state.message == 'Login with fingerprint') {
+                context.pop();
+                context.push(RoutesName.syncDataScreen, extra: true);
+              } else {
+                context.push(RoutesName.syncDataScreen, extra: false);
+              }
             }
 
             /// If message is No_fingerprint then show the dialog for Device user
@@ -68,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 );
               } else {
                 /// Other message will show on display
-                context.showSnackBar(state.message.toString());
+                context.showSnackBar(state.message.toString(), isError: true);
               }
             }
           }

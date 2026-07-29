@@ -19,7 +19,19 @@ class PropertiesRemoteSource {
           .doc(model.cardId.toString())
           .set(model.toMap());
     } on FirebaseException catch (e) {
-      throw e.message.toString();
+      switch (e.code) {
+        case 'resource-exhausted':
+          throw "Quta pora hogya";
+
+        case 'unavailable':
+          throw Exception("No internet connection");
+
+        case 'permission-denied':
+          throw Exception("Access denied");
+
+        default:
+          throw Exception(e.message ?? "Unknown error");
+      }
     } on TimeoutException {
       throw "Something went wrong. Please try again later.";
     } on Exception {
@@ -42,7 +54,19 @@ class PropertiesRemoteSource {
       }
       return list;
     } on FirebaseException catch (e) {
-      throw e.message.toString();
+      switch (e.code) {
+        case 'resource-exhausted':
+          throw "Quta pora hogya";
+
+        case 'unavailable':
+          throw Exception("No internet connection");
+
+        case 'permission-denied':
+          throw Exception("Access denied");
+
+        default:
+          throw Exception(e.message ?? "Unknown error");
+      }
     } on TimeoutException {
       throw 'Something went wrong. Please try again later.';
     } on Exception {
@@ -62,7 +86,19 @@ class PropertiesRemoteSource {
           .doc(model.cardId.toString())
           .update(model.toMap());
     } on FirebaseException catch (e) {
-      throw e.message.toString();
+      switch (e.code) {
+        case 'resource-exhausted':
+          throw "Quta pora hogya";
+
+        case 'unavailable':
+          throw Exception("No internet connection");
+
+        case 'permission-denied':
+          throw Exception("Access denied");
+
+        default:
+          throw Exception(e.message ?? "Unknown error");
+      }
     } on TimeoutException {
       throw "Something went wrong. Please try again later.";
     } on Exception {
@@ -81,8 +117,33 @@ class PropertiesRemoteSource {
           .collection('PropertyList')
           .doc(cardId.toString())
           .delete();
+
+      /// delete expenses of property
+      final expensesRef = firestore
+          .collection('Property')
+          .doc(currentUserEmail)
+          .collection('PropertyList')
+          .doc(cardId.toString())
+          .collection('Expenses');
+      final snapshot = await expensesRef.get();
+
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
     } on FirebaseException catch (e) {
-      throw e.message.toString();
+      switch (e.code) {
+        case 'resource-exhausted':
+          throw "Quta pora hogya";
+
+        case 'unavailable':
+          throw Exception("No internet connection");
+
+        case 'permission-denied':
+          throw Exception("Access denied");
+
+        default:
+          throw Exception(e.message ?? "Unknown error");
+      }
     } on TimeoutException {
       throw "Something went wrong. Please try again later.";
     } on Exception {

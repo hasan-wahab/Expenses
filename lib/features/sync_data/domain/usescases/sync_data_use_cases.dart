@@ -10,11 +10,13 @@ class SyncDataUseCases {
   Future<void> syncDataCall() async {
     _timer?.cancel();
     if (firstTime) {
-      await syncRepo.syncData();
+      await syncRepo.syncPropertiesData();
       firstTime = true;
     }
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      await syncRepo.syncData();
+      await syncRepo.syncPropertiesData();
+
+      await syncRepo.syncExpensesData();
     });
   }
 

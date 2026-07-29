@@ -124,9 +124,15 @@ class AuthBloc extends Bloc<AuthEvents, AuthStates> {
     try {
       emit(LoginStatusState(status: Status.loading));
       bool isFingerPrintAdded = await useCases.getFingerPrintCall();
+      print(isFingerPrintAdded);
       if (isFingerPrintAdded) {
         await useCases.loginWithFingerPrintCall();
-        emit(LoginStatusState(status: Status.success, message: 'Login'));
+        emit(
+          LoginStatusState(
+            status: Status.success,
+            message: 'Login with fingerprint',
+          ),
+        );
       } else {
         emit(
           LoginStatusState(

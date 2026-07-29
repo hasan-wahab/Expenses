@@ -17,33 +17,14 @@ import '../bloc/add_expenses_bloc.dart';
 import '../bloc/add_expenses_states.dart';
 
 class AddExpenseCategory extends StatefulWidget {
-  AddExpenseCategory({super.key});
+  List<String> categoryName;
+  AddExpenseCategory({super.key, required this.categoryName});
 
   @override
   State<AddExpenseCategory> createState() => _AddExpenseCategoryState();
 }
 
 class _AddExpenseCategoryState extends State<AddExpenseCategory> {
-  List<String> categoryName = [
-    'Gas',
-    'Electric',
-    'Water',
-    'Rent',
-    'Food',
-    'Other',
-    'Add new',
-  ];
-
-  List<IconData> categoryIcon = [
-    Icons.gas_meter,
-    Icons.electric_bolt,
-    Icons.water_drop,
-    Icons.home,
-    Icons.food_bank,
-    Icons.more_vert,
-    Icons.add,
-  ];
-
   int? selectedIndex;
   final TextEditingController controller = TextEditingController();
 
@@ -60,27 +41,35 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
             runSpacing: 12.h,
             spacing: 10.w,
             alignment: .start,
-            children: List.generate((categoryIcon.length), (index) {
+            children: List.generate((widget.categoryName.length), (index) {
               return InkWell(
                 onTap: () async {
-                  if (index + 1 != categoryIcon.length) {
+                  if (index + 1 != widget.categoryName.length) {
                     selectedIndex = index;
                     setState(() {});
+                    context.read<AddExpensesBloc>().add(
+                      SelectCategoryEvent(
+                        categoryName: widget.categoryName[index],
+                      ),
+                    );
                   } else {
                     selectedIndex = null;
                     setState(() {});
                     showCupertinoModalPopup(
                       context: context,
-                      builder: (context) {
-                        return AddNewCategoryDialogDesign(
-                          onTap: () {
-                            context.read<AddExpensesBloc>().add(
-                              AddNewCategoryEvent(
-                                categoryName: controller.text,
-                              ),
-                            );
-                          },
-                          controller: controller,
+                      builder: (_) {
+                        return BlocProvider.value(
+                          value: sl<AddExpensesBloc>(), // 🔥 SAME INSTANCE
+                          child: AddNewCategoryDialogDesign(
+                            onTap: () {
+                              context.read<AddExpensesBloc>().add(
+                                AddNewCategoryEvent(
+                                  categoryName: controller.text,
+                                ),
+                              );
+                            },
+                            controller: controller,
+                          ),
                         );
                       },
                     );
@@ -108,11 +97,10 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                       spacing: 5.2,
                       mainAxisSize: .min,
                       children: [
-                        Icon(categoryIcon[index]),
                         SmallText(
                           maxLine: 1,
                           overflow: TextOverflow.fade,
-                          text: categoryName[index],
+                          text: widget.categoryName[index],
                           style: context.smallText!.copyWith(fontWeight: .w500),
                         ),
                         selectedIndex != null && selectedIndex == index

@@ -20,10 +20,23 @@ class CardPickImage extends StatelessWidget {
           height: 160.h,
           width: .infinity,
           decoration: BoxDecoration(borderRadius: .circular(12.r)),
-          child: imagePath != null && imagePath != ''
+          child: imagePath != null
               ? ClipRRect(
                   borderRadius: .circular(12.r),
-                  child: Image.file(File(imagePath!.path), fit: .fill),
+                  child: Image.file(
+                    File(imagePath!.path),
+                    fit: .cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Column(
+                        mainAxisSize: .min,
+                        mainAxisAlignment: .center,
+                        children: [
+                          Icon(Icons.image),
+                          SmallText(text: 'Tap here to pick image'),
+                        ],
+                      );
+                    },
+                  ),
                 )
               : Column(
                   mainAxisSize: .min,

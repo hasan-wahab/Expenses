@@ -1,6 +1,6 @@
 class DashboardText {
   static String get appBarText => 'My properties';
-  static String get thisMonthExpense => 'This Month Expense';
+  static String get totalExpense => 'Total Expense';
   static String get budget => 'Budget: ';
   static String get homeLocationName => 'KPK Home';
   static String get homeName => 'Peshawar';

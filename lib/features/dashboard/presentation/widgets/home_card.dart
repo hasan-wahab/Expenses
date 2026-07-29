@@ -17,7 +17,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/constant/wrapers.dart';
+import '../../../../core/data_source/expense_data_source/expense_local_source.dart';
+import '../../../../core/di/get_it.dart';
 import '../../../../core/router/routes_name.dart';
+import '../../../add_expenses/domain/entitity/add_expense_entity_model.dart';
 
 class HomeCard extends StatelessWidget {
   final DashboardCardEntity entity;
@@ -98,10 +101,22 @@ class HomeCard extends StatelessWidget {
                         onSelected: (value) async {
                           switch (value) {
                             case 'add expense':
-                              context.push(RoutesName.addExpenseScreen);
+                              final result = await context.push(
+                                RoutesName.addExpenseScreen,
+                                extra: entity.cardId.toString(),
+                              );
+                              if (result == true) {
+                                if (!context.mounted) return;
+                                context.read<DashboardBloc>().add(
+                                  GetPropertiesEvent(),
+                                );
+                              }
                               break;
                             case 'summary':
-                              context.push(RoutesName.monthlySummary);
+                              context.push(
+                                RoutesName.monthlySummary,
+                                extra: entity.cardId,
+                              );
                               break;
                             case 'edit':
                               final result = await context.push(
@@ -119,11 +134,17 @@ class HomeCard extends StatelessWidget {
                               }
                               break;
                             case 'delete':
-                              print(entity.cardId);
-                              context.read<DashboardBloc>().add(
-                                DeletePropertyEvent(
-                                  entity: entity.copyWith(isDeleted: true),
-                                ),
+                              context.showConfirmationDialog(
+                                onYesPressed: () =>
+                                    context.read<DashboardBloc>().add(
+                                      DeletePropertyEvent(
+                                        propertyEntity: entity.copyWith(
+                                          isDeleted: true,
+                                        ),
+                                      ),
+                                    ),
+                                message:
+                                    'Are you sure you want to delete this property "${entity.propertyName}"?',
                               );
                               break;
                           }
@@ -185,17 +206,24 @@ class HomeCard extends StatelessWidget {
                   crossAxisAlignment: .start,
                   children: [
                     /// This month expenses and Budget
-                    SmallText(text: DashboardText.thisMonthExpense),
+                    SmallText(text: DashboardText.totalExpense),
                     Row(
                       mainAxisAlignment: .spaceBetween,
                       children: [
                         SecondaryText(
                           text: entity.monthlyExpenses.toString(),
                           style: context.secondaryText!.copyWith(
-                            color: AppColors.primary,
+                            color: entity.progress! < 100
+                                ? AppColors.primary
+                                : AppColors.redColor,
                           ),
                         ),
                         SmallText(
+                          style: entity.progress! < 100
+                              ? null
+                              : context.smallText!.copyWith(
+                                  color: AppColors.redColor,
+                                ),
                           text:
                               DashboardText.budget +
                               entity.monthlyBudget.toString(),
@@ -208,17 +236,44 @@ class HomeCard extends StatelessWidget {
                       minHeight: 12.h,
                       backgroundColor: AppColors.white,
 
-                      value: entity.progress,
-                      valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                      value: entity.progress!.toDouble() / 100,
+                      valueColor: AlwaysStoppedAnimation(
+                        entity.progress! < 100
+                            ? AppColors.primary
+                            : AppColors.redColor,
+                      ),
                       borderRadius: .circular(10.r),
                     ),
                     Row(
-                      mainAxisAlignment: .end,
+                      mainAxisAlignment: .spaceBetween,
                       children: [
+                        if (entity.progress! > 100)
+                          Row(
+                            spacing: 5.w,
+                            mainAxisSize: .min,
+                            crossAxisAlignment: .start,
+                            children: [
+                              Icon(
+                                Icons.warning_amber,
+                                color: AppColors.redColor,
+                              ),
+                              SmallText(
+                                text: DashboardText.overBudget,
+                                style: context.smallText!.copyWith(
+                                  color: AppColors.redColor,
+                                  fontWeight: .bold,
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          SizedBox(),
                         SmallText(
-                          text: '${entity.progress} %',
+                          text: '${entity.progress!.toInt()}%',
                           style: context.smallText!.copyWith(
-                            color: AppColors.primary,
+                            color: entity.progress! < 100
+                                ? AppColors.primary
+                                : AppColors.redColor,
                             fontWeight: .bold,
                           ),
                         ),

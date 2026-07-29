@@ -30,6 +30,8 @@ class SettingsBloc extends Bloc<SettingsEvents, SettingsStates> {
 
       SettingsEntityModel model = await localRepo.settingsProfileCardData();
 
+      print("From Setting Bloc ${model.email}");
+
       /// Initially from local storage get
       bool isEnable = await localRepo.getFingerPrint();
 
@@ -49,7 +51,9 @@ class SettingsBloc extends Bloc<SettingsEvents, SettingsStates> {
       emit(
         SettingsDataStates(
           entityModel: SettingsEntityModel().copyWith(
+            imageUrl: model.imageUrl,
             isEnableFingerPrint: isEnable,
+            phone: model.phone,
             name: model.name,
             email: model.email,
           ),

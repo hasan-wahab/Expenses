@@ -1,10 +1,10 @@
 import 'package:expense_app/core/constant/const_text/comparison_screen_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
-import 'package:expense_app/features/monthly_summary/presentation/widgets/monthly_dropdown.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../summary/presentation/widgets/monthly_dropdown.dart';
 import '../widgets/category_wise_comparison.dart';
 import '../widgets/comparison_card.dart';
 import '../widgets/total_expense_comparison.dart';

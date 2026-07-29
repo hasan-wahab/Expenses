@@ -44,7 +44,6 @@ class DashboardCardEntity {
     String? categoryType,
     SyncStatus? syncStatus,
     bool? isDeleted,
-
   }) {
     return DashboardCardEntity(
       cardId: cardId ?? this.cardId,

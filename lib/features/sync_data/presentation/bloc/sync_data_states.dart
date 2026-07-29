@@ -1,6 +1,9 @@
 abstract class SyncDataStates {}
 
-class SyncDataLoadingState extends SyncDataStates {}
+class SyncDataLoadingState extends SyncDataStates {
+  double progress;
+  SyncDataLoadingState({required this.progress});
+}
 
 class SyncDataLoadedState extends SyncDataStates {}
 

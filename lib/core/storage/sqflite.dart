@@ -35,8 +35,11 @@ class DBHelper {
             email Text,
             token Text,
             loginWith Text,
+            phone TEXT,
+            imageUrl TEXT,
             createAt Text,
-            updateAt Text
+            updateAt Text,
+            UNIQUE(email)
           )
         ''');
     await db.execute('''
@@ -63,6 +66,25 @@ class DBHelper {
             isDeleted INTEGER,
             propertyLocation TEXT,
             UNIQUE(email, cardId)
+          )
+        ''');
+
+    await db.execute('''
+          CREATE TABLE ${TableKeys.expensesTable} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT,
+            expenseId INTEGER,
+            propertyCardId INTEGER,
+            title TEXT,
+            note TEXT,
+            amount REAL,
+            categoryType TEXT,
+            date TEXT,
+            createAt TEXT,
+            updateAt TEXT,
+            syncStatus TEXT,
+            isDeleted INTEGER,
+            UNIQUE(email, expenseId)
           )
         ''');
 

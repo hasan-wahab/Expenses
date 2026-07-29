@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:expense_app/core/utils/image_picker.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ImageSourceRepo {
+class LocalImageSource {
   ImagePickerSource imagePickerSource;
-  ImageSourceRepo({required this.imagePickerSource});
+  LocalImageSource({required this.imagePickerSource});
 
   Future<XFile?> galleryImage() async {
     try {

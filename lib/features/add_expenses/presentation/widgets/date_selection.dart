@@ -7,15 +7,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/extensions/context_extension.dart';
 import '../../../widgets/small_text.dart';
 
-class DateSelection extends StatefulWidget {
-  const DateSelection({super.key});
+class DateSelection extends StatelessWidget {
+  final VoidCallback onTap;
+  String selectedDate;
+  DateSelection({
+    super.key,
+    required this.onTap,
+    this.selectedDate = '01/12/2025',
+  });
 
-  @override
-  State<DateSelection> createState() => _DateSelectionState();
-}
-
-class _DateSelectionState extends State<DateSelection> {
-  DateTime? selectedDate;
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -24,21 +24,14 @@ class _DateSelectionState extends State<DateSelection> {
       children: [
         SmallText(text: AddExpenseText.date),
         InkWell(
-          onTap: () async {
-            selectedDate = await context.showAppDatePicker();
-            setState(() {});
-          },
+          onTap: onTap,
           child: Card(
             child: Container(
               height: 48.h,
               padding: .symmetric(horizontal: 16.w, vertical: 12.h),
               child: Row(
                 children: [
-                  SmallText(
-                    text: selectedDate != null
-                        ? selectedDate!.toDisplayDate()
-                        : '01/12/2025',
-                  ),
+                  SmallText(text: selectedDate),
                   Spacer(),
                   Icon(Icons.calendar_month),
                 ],

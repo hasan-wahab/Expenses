@@ -28,7 +28,8 @@ dependencies:
   app_settings: ^7.0.0
   path: ^1.9.1
   path_provider: ^2.1.6
-
+  pdf: ^3.12.0
+  printing: ^5.15.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

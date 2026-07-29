@@ -49,7 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (state.status == Status.success) {
               print(state.status);
               context.pop();
-              list = state.list;
+              list = state.propertyList;
             }
             if (state.status == Status.error) {
               context.pop();
@@ -60,10 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, state) {
           return Scaffold(
             backgroundColor: AppColors.bgColor,
-            appBar: CustomAppBar(
-              title: DashboardText.appBarText,
-              actionIcon1: Icons.notifications_none,
-            ),
+            appBar: CustomAppBar(title: DashboardText.appBarText),
             body: list.isEmpty
                 ? NoPropertyAdded()
                 : ListView.builder(

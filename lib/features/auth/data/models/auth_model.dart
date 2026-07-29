@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/features/auth/domain/entitity/auth_entity.dart';
 
 class UserModel extends AuthEntity {
@@ -15,7 +16,33 @@ class UserModel extends AuthEntity {
     super.loginWith,
     this.createAt,
     this.updateAt,
+    super.phone,
+    super.imageUrl,
   });
+
+  UserModel copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? password,
+    String? loginWith,
+    String? createAt,
+    String? updateAt,
+    String? phone,
+    String? imageUrl,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      loginWith: LoginType.emailAndPassword,
+      createAt: createAt ?? this.createAt,
+      updateAt: updateAt ?? this.updateAt,
+      phone: phone ?? this.phone,
+      imageUrl: imageUrl ?? this.imageUrl,
+    );
+  }
 
   // Convert object to Map
   Map<String, dynamic> toMap() {
@@ -23,9 +50,11 @@ class UserModel extends AuthEntity {
       'id': id,
       'name': name,
       'email': email,
-      'loginWith': loginWith,
+      'loginWith': loginWith.toString(),
       'createAt': createAt,
       'updateAt': updateAt,
+      'phone': phone,
+      'imageUrl': imageUrl,
     };
   }
 
@@ -37,7 +66,11 @@ class UserModel extends AuthEntity {
       email: map['email'],
       createAt: map['createAt'],
       updateAt: map['updateAt'],
-      loginWith: map['loginWith'],
+      loginWith: map['loginWith'] == 'emailAndPassword'
+          ? LoginType.emailAndPassword
+          : LoginType.google,
+      phone: map['phone'],
+      imageUrl: map['imageUrl'],
     );
   }
 
@@ -49,6 +82,8 @@ class UserModel extends AuthEntity {
       password: entity.password,
       loginWith: entity.loginWith,
       createAt: DateTime.now().toIso8601String(),
+      imageUrl: entity.imageUrl,
+      phone: entity.phone,
     );
   }
 
@@ -59,6 +94,8 @@ class UserModel extends AuthEntity {
       email: email,
       password: password,
       loginWith: loginWith,
+      phone: phone,
+      imageUrl: imageUrl,
     );
   }
 

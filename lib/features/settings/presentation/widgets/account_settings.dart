@@ -11,12 +11,15 @@ import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constant/wrapers.dart';
 import '../../../../core/di/get_it.dart';
+import '../../../../core/router/routes_name.dart';
 
 class AccountSettings extends StatelessWidget {
-  bool value;
-  AccountSettings({super.key, required this.value});
+  SettingsEntityModel entityModel;
+  AccountSettings({super.key, required this.entityModel});
 
   @override
   Widget build(BuildContext context) {
@@ -30,24 +33,41 @@ class AccountSettings extends StatelessWidget {
           child: Column(
             children: [
               SettingsListTile(
+                onTap: () async {
+                  final result = await context.push(
+                    RoutesName.personalInfoScreen,
+                    extra: PersonalInfoArgs(
+                      mode: PersonalInfoMode.add,
+                      entity: entityModel,
+                    ),
+                  );
+                  if (result == true) {
+                    if (!context.mounted) return;
+                    context.read<SettingsBloc>().add(OnSettingsEvent());
+                  }
+                },
                 leadingIcon: Icons.person,
                 title: SettingsScreenText.personalInfo,
                 trailingIcon: Icons.arrow_forward_ios,
               ),
-              SettingsListTile(
-                leadingIcon: Icons.notifications_none,
-                title: SettingsScreenText.notif,
-                trailingIcon: Icons.arrow_forward_ios,
-              ),
-              SettingsListTile(
-                leadingIcon: Icons.money,
-                title: SettingsScreenText.currency,
-                trailingIcon: Icons.arrow_forward_ios,
-              ),
+              // SettingsListTile(
+              //   onTap: () {
+              //     context.push(RoutesName.budgetsAlertsScreen);
+              //   },
+              //   leadingIcon: Icons.notifications_none,
+              //   title: SettingsScreenText.notif,
+              //   trailingIcon: Icons.arrow_forward_ios,
+              // ),
+              // SettingsListTile(
+              //   leadingIcon: Icons.currency_exchange,
+              //   title: SettingsScreenText.currency,
+              //   trailingIcon: Icons.arrow_forward_ios,
+              //   onTap: () {},
+              // ),
               FingerPrintListTile(
                 title: SettingsScreenText.finger,
                 leadingIcon: Icons.fingerprint,
-                isOn: value,
+                isOn: entityModel.isEnableFingerPrint,
                 onChange: (value) {
                   context.read<SettingsBloc>().add(
                     OnSettingsEvent(isFingerPrintEnable: value),
@@ -64,8 +84,10 @@ class AccountSettings extends StatelessWidget {
 }
 
 class SettingsListTile extends StatelessWidget {
-  final double? iconSize;
   final String title;
+  final VoidCallback onTap;
+  final double? iconSize;
+
   final IconData leadingIcon;
   final IconData trailingIcon;
   bool isShowLastIndexDivider;
@@ -77,17 +99,21 @@ class SettingsListTile extends StatelessWidget {
     required this.trailingIcon,
     this.isShowLastIndexDivider = true,
     this.iconSize,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ListTile(
-          contentPadding: .symmetric(horizontal: 16.w),
-          leading: Icon(leadingIcon),
-          trailing: Icon(trailingIcon, size: iconSize ?? 12.r),
-          title: SecondaryText(text: title),
+        InkWell(
+          onTap: onTap,
+          child: ListTile(
+            contentPadding: .symmetric(horizontal: 16.w),
+            leading: Icon(leadingIcon),
+            trailing: Icon(trailingIcon, size: iconSize ?? 12.r),
+            title: SecondaryText(text: title),
+          ),
         ),
         isShowLastIndexDivider
             ? Divider(

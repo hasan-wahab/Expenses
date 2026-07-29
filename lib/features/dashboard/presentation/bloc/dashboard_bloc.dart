@@ -6,6 +6,7 @@ import 'package:expense_app/features/dashboard/data/models/property_card_model.d
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:expense_app/features/dashboard/domain/usescases/dashboard_use_case.dart';
 
+import '../../../add_expenses/data/models/expense_model.dart';
 import 'dashboard_events.dart';
 import 'dashboard_states.dart';
 
@@ -21,14 +22,14 @@ class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
     Emitter<DashboardStates> emit,
   ) async {
     try {
-      emit(GetProperties(list: [], status: Status.loading));
+      emit(GetProperties(propertyList: [], status: Status.loading));
       List<DashboardCardEntity> model = await useCase.getPropertiesListCall();
 
-      emit(GetProperties(list: model, status: Status.success));
+      emit(GetProperties(propertyList: model, status: Status.success));
     } catch (e) {
       emit(
         GetProperties(
-          list: [],
+          propertyList: [],
           status: Status.error,
           errorMessage: e.toString(),
         ),
@@ -41,16 +42,16 @@ class DashboardBloc extends Bloc<DashboardEvents, DashboardStates> {
     Emitter<DashboardStates> emit,
   ) async {
     try {
-      emit(GetProperties(list: [], status: Status.loading));
+      emit(GetProperties(propertyList: [], status: Status.loading));
       await useCase.deletePropertyCall(
-        model: PropertyModel.fromEntity(event.entity),
+        model: PropertyModel.fromEntity(event.propertyEntity),
       );
       List<DashboardCardEntity> list = await useCase.getPropertiesListCall();
-      emit(GetProperties(list: list, status: Status.success));
+      emit(GetProperties(propertyList: list, status: Status.success));
     } catch (e) {
       emit(
         GetProperties(
-          list: [],
+          propertyList: [],
           status: Status.error,
           errorMessage: e.toString(),
         ),

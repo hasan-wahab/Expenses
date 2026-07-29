@@ -15,10 +15,12 @@ class RoutesName {
   static String get settingsScreen => '/settingsScreen';
   static String get personalInfoScreen => '/personalInfoScreen';
   static String get exportToPdfScreen => '/exportToPdfScreen';
+  static String get pdfPreviewScreen => '/pdfPreviewScreen';
   static String get notificationScreen => '/notificationScreen';
   static String get currencyScreen => '/currencyScreen';
   static String get naveBar => '/naveBar';
   static String get test => '/test';
   static String get addPropertyScreen => '/addPropertyScreen';
   static String get syncDataScreen => '/syncDataScreen';
+  static String get categoryDetailScreen => '/categoryDetailScreen';
 }

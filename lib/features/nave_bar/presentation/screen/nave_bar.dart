@@ -1,8 +1,8 @@
+import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/features/add_expenses/presentation/screen/add_expenses_screen.dart';
 import 'package:expense_app/features/comparison/presentation/screen/comparison_screen.dart';
 import 'package:expense_app/features/dashboard/presentation/screen/dashboard_screen.dart';
-import 'package:expense_app/features/monthly_summary/presentation/screen/monthly_summary_screen.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_bloc.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_events.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_states.dart';
@@ -16,26 +16,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constant/const_text/dashboard_text.dart';
 import '../../../../core/constant/const_text/monthly_summary_text.dart';
 import '../../../../core/di/get_it.dart';
+import '../../../summary/presentation/screen/summary_screen.dart';
 
 class NaveBar extends StatelessWidget {
   const NaveBar({super.key});
 
   List<Widget> get screens => [
     DashboardScreen(),
-    MonthlySummaryScreen(),
-    AddExpensesScreen(),
-    ComparisonScreen(),
+    AddExpensesScreen(propertyCardId: '', mode: AddExpenseMode.fromNavBar),
     SettingsScreen(),
   ];
 
-  List<IconData> get icons => [
-    Icons.home,
-    Icons.summarize,
-    Icons.add,
-    Icons.compare_arrows,
-    Icons.settings,
-  ];
-  List<String> get name => ['Home', 'Summary', 'Add', 'Compare', 'Settings'];
+  List<IconData> get icons => [Icons.home, Icons.add, Icons.settings];
+  List<String> get name => ['Home', 'Add Expense', 'Settings'];
 
   @override
   Widget build(BuildContext context) {

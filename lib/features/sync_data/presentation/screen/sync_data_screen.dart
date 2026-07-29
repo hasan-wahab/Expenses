@@ -12,16 +12,17 @@ import '../bloc/sync_data_events.dart';
 import '../bloc/sync_data_states.dart';
 
 class SyncDataScreen extends StatelessWidget {
-  const SyncDataScreen({super.key});
+  bool isFingerPrint;
+  SyncDataScreen({super.key, required this.isFingerPrint});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<SyncDataBloc>()..add(SyncDataEvent()),
+      create: (context) =>
+          sl<SyncDataBloc>()..add(SyncDataEvent(isFingerPrint: isFingerPrint)),
       child: BlocConsumer<SyncDataBloc, SyncDataStates>(
         listener: (context, state) {
           if (state is SyncDataLoadedState) {
-            print(state);
             context.go(RoutesName.naveBar);
           }
         },
@@ -38,8 +39,16 @@ class SyncDataScreen extends StatelessWidget {
                     crossAxisAlignment: .center,
                     mainAxisAlignment: .center,
                     children: [
-                      ExtraLargeText(text: '90%'),
-                      LinearProgressIndicator(),
+                      if (state is SyncDataLoadingState)
+                        ExtraLargeText(text: '${state.progress.toInt()}%')
+                      else
+                        ExtraLargeText(text: '100%'),
+
+                      LinearProgressIndicator(
+                        value: state is SyncDataLoadingState
+                            ? state.progress / 100
+                            : 1,
+                      ),
                       SmallText(
                         align: .center,
                         text: "Fetching your property data...",

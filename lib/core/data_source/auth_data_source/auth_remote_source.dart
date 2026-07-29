@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/features/auth/data/models/auth_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -19,7 +20,30 @@ class AuthRemoteSource {
       await firestore
           .collection('Users')
           .doc(model.email)
-          .set(model.toMap())
+          .set(
+            model
+                .copyWith(loginWith: LoginType.emailAndPassword.toString())
+                .toMap(),
+          )
+          .timeout(Duration(seconds: 15));
+    } on FirebaseAuthException catch (e) {
+      throw e.code;
+    } on TimeoutException {
+      throw 'Please check your internet connection and try again';
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<void> update({
+    required UserModel model,
+    required String currentUserEmail,
+  }) async {
+    try {
+      await firestore
+          .collection('Users')
+          .doc(currentUserEmail)
+          .update(model.toMap())
           .timeout(Duration(seconds: 15));
     } on FirebaseAuthException catch (e) {
       throw e.code;

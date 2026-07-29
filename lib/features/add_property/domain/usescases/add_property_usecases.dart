@@ -1,13 +1,13 @@
+import 'package:expense_app/core/data_source/local_image_source/image_source_repo.dart';
 import 'package:expense_app/features/dashboard/data/property_repo.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../dashboard/data/models/property_card_model.dart';
-import '../../data/images/image_source_repo.dart';
 
 class AddPropertyUseCases {
   PropertyRepo propertyRepo;
-  ImageSourceRepo imageSourceRepo;
+  LocalImageSource imageSourceRepo;
   AddPropertyUseCases({
     required this.propertyRepo,
     required this.imageSourceRepo,
@@ -50,5 +50,4 @@ class AddPropertyUseCases {
       propertyCardId: propertyCardId,
     );
   }
-
 }

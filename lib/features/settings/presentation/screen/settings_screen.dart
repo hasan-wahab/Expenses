@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:expense_app/core/constant/const_text/settings_screen_text.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
+import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/settings/domain/entitity/settings_entity.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_events.dart';
@@ -16,6 +17,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/di/get_it.dart';
+import '../../../nave_bar/presentation/bloc/nave_bar_bloc.dart';
+import '../../../nave_bar/presentation/bloc/nave_bar_events.dart';
 import '../widgets/account_settings.dart';
 import '../widgets/min_profile_info_card.dart';
 
@@ -48,27 +51,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
         },
         builder: (context, state) {
-          return Scaffold(
-            appBar: CustomAppBar(
-              title: SettingsScreenText.appBarText,
-              profileImagePath: '',
-            ),
-            body: ListView(
-              padding: .symmetric(horizontal: 20.w),
-              children: [
-                SizedBox(height: 24.h),
+          return WillPopScope(
+            onWillPop: () async {
+              context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
+              return false;
+            },
+            child: Scaffold(
+              appBar: CustomAppBar(
+                isLeading: true,
+                leadingOnTap: () {
+                  context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
+                },
 
-                /// Min Profile Info Card
-                MinProfileInfoCard(entityModel: entityModel),
-                SizedBox(height: 24.h),
-                AccountSettings(value: entityModel.isEnableFingerPrint),
-                SizedBox(height: 24.h),
+                title: SettingsScreenText.appBarText,
+              ),
+              body: ListView(
+                padding: .symmetric(horizontal: 20.w),
+                children: [
+                  SizedBox(height: 24.h),
 
-                /// Export to pdf Print Card
-                ExportCard(),
-                SizedBox(height: 40.h),
-                PrimaryButton(text: SettingsScreenText.logout, onTap: () {}),
-              ],
+                  /// Min Profile Info Card
+                  MinProfileInfoCard(entityModel: entityModel),
+                  SizedBox(height: 24.h),
+                  AccountSettings(entityModel: entityModel),
+                  SizedBox(height: 24.h),
+
+                  /// Export to pdf Print Card
+                  ExportCard(),
+                  SizedBox(height: 40.h),
+                  PrimaryButton(
+                    text: SettingsScreenText.logout,
+                    onTap: () {
+                      context.showConfirmationDialog(
+                        message: 'Are you sure you want to logout?',
+                        onYesPressed: () => context.go(RoutesName.login),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           );
         },

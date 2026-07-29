@@ -32,16 +32,71 @@ extension ContextExtension on BuildContext {
   void showSnackBar(
     String message, {
     SnackBarBehavior snackBarBehavior = SnackBarBehavior.floating,
+    bool isError = false,
   }) {
     ScaffoldMessenger.of(this)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          backgroundColor: isError ? AppColors.redColor : AppColors.primary,
           closeIconColor: AppColors.redColor,
           content: Text(message),
           behavior: snackBarBehavior,
         ),
       );
+  }
+
+  Future<void> showConfirmationDialog({
+    VoidCallback? onYesPressed,
+    String title = "Confirmation",
+    String message = "Are you sure?",
+  }) {
+    return showDialog<bool>(
+      context: this,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: SecondaryText(text: title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SmallText(text: message, maxLine: 3),
+              const SizedBox(height: 20),
+
+              /// ✅ Buttons Row (full width)
+              Row(
+                spacing: 20.w,
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      height: 35.h,
+                      isOutline: true,
+                      onTap: () {
+                        pop();
+                      },
+                      text: 'Cancel',
+                    ),
+                  ),
+                  Expanded(
+                    child: PrimaryButton(
+                      height: 35.h,
+                      onTap: () {
+                        pop();
+                        onYesPressed?.call();
+                      },
+                      text: "Yes",
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   /// Loading dialog
@@ -98,10 +153,25 @@ extension ContextExtension on BuildContext {
   Future<DateTime?> showAppDatePicker() async {
     return await showDatePicker(
       context: this,
+
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.white,
+              onSurface: AppColors.textBlack,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
   }
-
 }

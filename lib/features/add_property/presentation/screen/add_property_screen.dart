@@ -84,13 +84,11 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
             }
           }
           if (state is GetAddedPropertyCardState) {
-            print(state.status);
             if (state.status == Status.success) {
               context.pop(true);
             }
             if (state.status == Status.error) {
-              context.showSnackBar(state.message.toString());
-              print(state.message);
+              context.showSnackBar(state.message.toString(), isError: true);
             }
           }
         },
@@ -174,12 +172,28 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         OnAddPropertyCardEvent(model: model),
                       );
                     } else {
+                      final targetBudget = double.parse(
+                        targetBudgetController.text,
+                      );
+                      final percent =
+                          (widget.cardEntity!.monthlyExpenses! / targetBudget) *
+                          100;
+
                       context.read<AddPropertyBloc>().add(
                         OnUpdatePropertyCardEvent(
                           model: model.copyWith(
                             cardId: widget.cardEntity!.cardId,
                             updateAt: DateTime.now().toString(),
                             createAt: widget.cardEntity!.createAt,
+                            monthlyExpenses: widget.cardEntity!.monthlyExpenses,
+                            monthlyBudget: targetBudget,
+                            progress: percent,
+                            isDeleted: widget.cardEntity!.isDeleted,
+                            syncStatus: SyncStatus.pending,
+                            imageUrl: widget.cardEntity!.imageUrl,
+                            categoryType: propertyType,
+                            propertyName: propertyNameController.text,
+                            propertyLocation: propertyLocationController.text,
                           ),
                         ),
                       );

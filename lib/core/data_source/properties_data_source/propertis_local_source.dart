@@ -66,10 +66,18 @@ class PropertiesLocalSource {
     required String currentUserEmail,
   }) async {
     try {
+      /// Delete property
       await sqfLiteCurd.delete(
         tableKey: TableKeys.propertyCardTable,
         where: 'email = ? AND cardId = ?',
         whereArgs: [currentUserEmail, cardId],
+      );
+
+      /// Delete expenses of property
+      await sqfLiteCurd.delete(
+        tableKey: TableKeys.expensesTable,
+        whereArgs: [cardId, currentUserEmail],
+        where: 'propertyCardId = ? AND email = ?',
       );
     } on Exception {
       rethrow;
