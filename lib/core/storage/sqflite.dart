@@ -18,7 +18,20 @@ class DBHelper {
   Future<Database> initDB() async {
     String path = join(await getDatabasesPath(), TableKeys.myDb);
 
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
+  }
+
+  FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE ${TableKeys.expensesTable} ADD COLUMN receiptImage TEXT',
+      );
+    }
   }
 
   FutureOr<void> _onCreate(Database db, int version) async {
@@ -31,14 +44,14 @@ class DBHelper {
     await db.execute('''
           CREATE TABLE ${TableKeys.userTable}(
             id INTEGER PRIMARY KEY,
-            name Text,
-            email Text,
-            token Text,
-            loginWith Text,
+            name TEXT,
+            email TEXT,
+            token TEXT,
+            loginWith TEXT,
             phone TEXT,
             imageUrl TEXT,
-            createAt Text,
-            updateAt Text,
+            createAt TEXT,
+            updateAt TEXT,
             UNIQUE(email)
           )
         ''');
@@ -77,6 +90,7 @@ class DBHelper {
             propertyCardId INTEGER,
             title TEXT,
             note TEXT,
+            receiptImage TEXT,
             amount REAL,
             categoryType TEXT,
             date TEXT,

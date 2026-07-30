@@ -155,7 +155,7 @@ class AuthBloc extends Bloc<AuthEvents, AuthStates> {
         emit(
           LoginStatusState(
             status: Status.error,
-            message: 'Somethings went wrong!',
+            message: e.toString(),
           ),
         );
       }

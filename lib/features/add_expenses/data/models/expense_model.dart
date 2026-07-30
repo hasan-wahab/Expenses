@@ -9,13 +9,13 @@ class ExpenseModel extends ExpenseEntity {
     super.categoryType,
     super.date,
     super.note,
+    super.receiptImage,
     super.createAt,
     super.updateAt,
     super.syncStatus,
     super.isDeleted,
   });
 
-  // 🔄 Entity → Model
   factory ExpenseModel.fromEntity(ExpenseEntity entity) {
     return ExpenseModel(
       id: entity.id,
@@ -25,6 +25,7 @@ class ExpenseModel extends ExpenseEntity {
       categoryType: entity.categoryType,
       date: entity.date,
       note: entity.note,
+      receiptImage: entity.receiptImage,
       createAt: entity.createAt,
       updateAt: entity.updateAt,
       syncStatus: entity.syncStatus,
@@ -32,7 +33,6 @@ class ExpenseModel extends ExpenseEntity {
     );
   }
 
-  // 🔄 Model → Entity
   ExpenseEntity toEntity() {
     return ExpenseEntity(
       id: id,
@@ -42,6 +42,7 @@ class ExpenseModel extends ExpenseEntity {
       categoryType: categoryType,
       date: date,
       note: note,
+      receiptImage: receiptImage,
       createAt: createAt,
       updateAt: updateAt,
       syncStatus: syncStatus,
@@ -49,7 +50,6 @@ class ExpenseModel extends ExpenseEntity {
     );
   }
 
-  // 🗄️ toMap (Sqflite)
   Map<String, dynamic> toMap() {
     return {
       'expenseId': id,
@@ -59,6 +59,7 @@ class ExpenseModel extends ExpenseEntity {
       'categoryType': categoryType,
       'date': date,
       'note': note,
+      'receiptImage': receiptImage,
       'createAt': createAt,
       'updateAt': updateAt,
       'syncStatus': syncStatus,
@@ -66,16 +67,16 @@ class ExpenseModel extends ExpenseEntity {
     };
   }
 
-  // 🗄️ fromMap (Sqflite)
   factory ExpenseModel.fromMap(Map<String, dynamic> map) {
     return ExpenseModel(
       id: map['expenseId'],
       propertyCardId: map['propertyCardId'],
       title: map['title'],
-      amount: (map['amount'] as double?)?.toDouble(),
+      amount: (map['amount'] as num?)?.toDouble(),
       categoryType: map['categoryType'],
       date: map['date'],
       note: map['note'],
+      receiptImage: map['receiptImage'],
       createAt: map['createAt'],
       updateAt: map['updateAt'],
       syncStatus: map['syncStatus'],
@@ -83,7 +84,6 @@ class ExpenseModel extends ExpenseEntity {
     );
   }
 
-  // 🌐 toJson (API / Firebase)
   Map<String, dynamic> toJson() {
     return {
       'expenseId': id,
@@ -93,6 +93,7 @@ class ExpenseModel extends ExpenseEntity {
       'categoryType': categoryType,
       'date': date,
       'note': note,
+      'receiptImage': receiptImage,
       'createAt': createAt,
       'updateAt': updateAt,
       'syncStatus': syncStatus,
@@ -100,16 +101,16 @@ class ExpenseModel extends ExpenseEntity {
     };
   }
 
-  // 🌐 fromJson (API / Firebase)
   factory ExpenseModel.fromJson(Map<String, dynamic> json) {
     return ExpenseModel(
       id: json['expenseId'],
       propertyCardId: json['propertyCardId'],
       title: json['title'],
-      amount: (json['amount'] as double?)?.toDouble(),
+      amount: (json['amount'] as num?)?.toDouble(),
       categoryType: json['categoryType'],
       date: json['date'],
       note: json['note'],
+      receiptImage: json['receiptImage'],
       createAt: json['createAt'],
       updateAt: json['updateAt'],
       syncStatus: json['syncStatus'],
@@ -117,7 +118,6 @@ class ExpenseModel extends ExpenseEntity {
     );
   }
 
-  // 🔥 copyWith (Model level)
   @override
   ExpenseModel copyWith({
     int? id,
@@ -141,6 +141,7 @@ class ExpenseModel extends ExpenseEntity {
       categoryType: categoryType ?? this.categoryType,
       date: date ?? this.date,
       note: note ?? this.note,
+      receiptImage: receiptImage ?? this.receiptImage,
       createAt: createAt ?? this.createAt,
       updateAt: updateAt ?? this.updateAt,
       syncStatus: syncStatus ?? this.syncStatus,

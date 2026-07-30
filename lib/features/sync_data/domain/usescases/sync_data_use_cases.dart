@@ -11,16 +11,21 @@ class SyncDataUseCases {
     _timer?.cancel();
     if (firstTime) {
       await syncRepo.syncPropertiesData();
-      firstTime = true;
+      firstTime = false;
     }
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       await syncRepo.syncPropertiesData();
-
       await syncRepo.syncExpensesData();
     });
   }
 
-  void dispose() {
+  void stopSync() {
     _timer?.cancel();
+    _timer = null;
+    firstTime = true;
+  }
+
+  void dispose() {
+    stopSync();
   }
 }

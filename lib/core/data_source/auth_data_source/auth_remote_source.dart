@@ -79,4 +79,10 @@ class AuthRemoteSource {
     // TODO: implement loginWithGoogle
     throw UnimplementedError();
   }
+
+  User? get currentUser => auth.currentUser;
+
+  Future<void> signOut() async {
+    await auth.signOut();
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:expense_app/core/constant/enums.dart';
-import 'package:expense_app/features/dashboard/data/models/property_card_model.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
+import 'package:image_picker/image_picker.dart';
 
 abstract class AddExpensesStates {}
 
@@ -26,5 +26,20 @@ class GetPropertyCardState extends AddExpensesStates {
   Status status;
   String? message;
   List<DashboardCardEntity>? propertyCardList;
-  GetPropertyCardState({required this.status, this.message = '',this.propertyCardList});
+  GetPropertyCardState({
+    required this.status,
+    this.message = '',
+    this.propertyCardList,
+  });
+}
+
+class PickReceiptImageState extends AddExpensesStates {
+  final Status status;
+  final XFile? imagePath;
+  final String? message;
+  PickReceiptImageState({
+    required this.status,
+    this.imagePath,
+    this.message,
+  });
 }

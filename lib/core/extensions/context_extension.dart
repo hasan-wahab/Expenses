@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 extension ContextExtension on BuildContext {
   /// Screen Height And Width
@@ -170,6 +171,49 @@ extension ContextExtension on BuildContext {
             ),
           ),
           child: child!,
+        );
+      },
+    );
+  }
+
+  Future<ImageSource?> showImageSourcePicker() {
+    return showModalBottomSheet<ImageSource>(
+      context: this,
+      backgroundColor: AppColors.bgColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                SecondaryText(text: 'Choose Image Source'),
+                SizedBox(height: 16.h),
+                ListTile(
+                  leading: Icon(Icons.photo_library_outlined, color: AppColors.primary),
+                  title: SmallText(text: 'Gallery'),
+                  onTap: () => pop(ImageSource.gallery),
+                ),
+                ListTile(
+                  leading: Icon(Icons.camera_alt_outlined, color: AppColors.primary),
+                  title: SmallText(text: 'Camera'),
+                  onTap: () => pop(ImageSource.camera),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

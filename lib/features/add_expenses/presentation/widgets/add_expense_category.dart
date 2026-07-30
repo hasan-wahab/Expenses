@@ -1,6 +1,7 @@
 import 'package:expense_app/core/constant/const_text/add_expese_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
+import 'package:expense_app/core/extensions/text_controller_extension.dart';
 import 'package:expense_app/features/add_expenses/presentation/bloc/add_expenses_event.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,12 +10,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/di/get_it.dart';
 import '../../../widgets/app_t_field.dart';
 import '../../../widgets/priamary_butn.dart';
 import '../../../widgets/secondery_text.dart';
 import '../bloc/add_expenses_bloc.dart';
-import '../bloc/add_expenses_states.dart';
 
 class AddExpenseCategory extends StatefulWidget {
   List<String> categoryName;
@@ -29,18 +28,24 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
   final TextEditingController controller = TextEditingController();
 
   @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: .infinity,
+      width: double.infinity,
       child: Column(
         spacing: 8.h,
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SmallText(text: AddExpenseText.category),
           Wrap(
             runSpacing: 12.h,
             spacing: 10.w,
-            alignment: .start,
+            alignment: WrapAlignment.start,
             children: List.generate((widget.categoryName.length), (index) {
               return InkWell(
                 onTap: () async {
@@ -59,7 +64,7 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                       context: context,
                       builder: (_) {
                         return BlocProvider.value(
-                          value: sl<AddExpensesBloc>(), // 🔥 SAME INSTANCE
+                          value: context.read<AddExpensesBloc>(),
                           child: AddNewCategoryDialogDesign(
                             onTap: () {
                               context.read<AddExpensesBloc>().add(
@@ -67,6 +72,8 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                                   categoryName: controller.text,
                                 ),
                               );
+                              controller.reset();
+                              context.pop();
                             },
                             controller: controller,
                           ),
@@ -83,10 +90,13 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                       ? AppColors.white
                       : null,
                   child: Container(
-                    padding: .symmetric(horizontal: 10.r, vertical: 5.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.r,
+                      vertical: 5.h,
+                    ),
                     decoration: BoxDecoration(
-                      borderRadius: .circular(8.r),
-                      border: .all(
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(
                         width: 2,
                         color: selectedIndex != null && selectedIndex == index
                             ? AppColors.primary
@@ -95,17 +105,19 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                     ),
                     child: Row(
                       spacing: 5.2,
-                      mainAxisSize: .min,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         SmallText(
                           maxLine: 1,
                           overflow: TextOverflow.fade,
                           text: widget.categoryName[index],
-                          style: context.smallText!.copyWith(fontWeight: .w500),
+                          style: context.smallText!.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         selectedIndex != null && selectedIndex == index
-                            ? Icon(Icons.check)
-                            : SizedBox.shrink(),
+                            ? const Icon(Icons.check)
+                            : const SizedBox.shrink(),
                       ],
                     ),
                   ),
@@ -121,9 +133,9 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
 
 class AddNewCategoryDialogDesign extends StatelessWidget {
   final VoidCallback onTap;
-  TextEditingController controller;
+  final TextEditingController controller;
 
-  AddNewCategoryDialogDesign({
+  const AddNewCategoryDialogDesign({
     super.key,
     required this.controller,
     required this.onTap,
@@ -133,20 +145,19 @@ class AddNewCategoryDialogDesign extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: context.sh / 2,
-
       child: Material(
-        borderRadius: .only(
-          topLeft: .circular(12.r),
-          topRight: .circular(12.r),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(12.r),
+          topRight: Radius.circular(12.r),
         ),
         color: AppColors.white,
         child: Padding(
-          padding: .only(top: 20.h, left: 20.w, right: 20.w),
+          padding: EdgeInsets.only(top: 20.h, left: 20.w, right: 20.w),
           child: Column(
             spacing: 20.h,
             children: [
               Row(
-                mainAxisAlignment: .spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   SecondaryText(text: 'Add New Category'),
                   InkWell(onTap: () => context.pop(), child: Icon(Icons.close)),

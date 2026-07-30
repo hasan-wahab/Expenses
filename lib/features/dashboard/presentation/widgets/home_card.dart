@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
@@ -17,20 +16,32 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/constant/wrapers.dart';
-import '../../../../core/data_source/expense_data_source/expense_local_source.dart';
-import '../../../../core/di/get_it.dart';
 import '../../../../core/router/routes_name.dart';
-import '../../../add_expenses/domain/entitity/add_expense_entity_model.dart';
 
 class HomeCard extends StatelessWidget {
   final DashboardCardEntity entity;
   const HomeCard({super.key, required this.entity});
 
+  Future<void> _onAddExpense(BuildContext context) async {
+    final result = await context.push(
+      RoutesName.addExpenseScreen,
+      extra: entity.cardId.toString(),
+    );
+    if (result == true) {
+      if (!context.mounted) return;
+      context.read<DashboardBloc>().add(GetPropertiesEvent());
+    }
+  }
+
+  void _onViewSummary(BuildContext context) {
+    context.push(RoutesName.monthlySummary, extra: entity.cardId);
+  }
+
   @override
   Widget build(BuildContext context) {
-    print(entity.cardId);
+    final isOverBudget = (entity.progress ?? 0) >= 100;
+
     return SizedBox(
-      height: 218.h,
       width: 350.w,
       child: Card(
         surfaceTintColor: AppColors.primaryDark,
@@ -39,85 +50,76 @@ class HomeCard extends StatelessWidget {
         shadowColor: AppColors.iconsColor,
         color: AppColors.bgColor,
         child: Padding(
-          padding: EdgeInsets.all(16.h),
+          padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 14.h),
           child: Column(
-            mainAxisAlignment: .spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /// Card Header
               SizedBox(
                 width: double.infinity,
-                height: 80.h,
+                height: 72.h,
                 child: Row(
-                  crossAxisAlignment: .start,
-                  spacing: 16.w,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 12.w,
                   children: [
-                    /// Image Container
                     Card(
+                      margin: EdgeInsets.zero,
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: .circular(12.r),
-                          border: .all(width: 2.w, color: AppColors.white),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            width: 2.w,
+                            color: AppColors.white,
+                          ),
                         ),
-                        height: 80.h,
-                        width: 80.w,
+                        height: 72.h,
+                        width: 72.w,
                         child: ClipRRect(
-                          borderRadius: .circular(12.r),
+                          borderRadius: BorderRadius.circular(12.r),
                           child: entity.imageUrl != ''
                               ? Image.file(
                                   File(entity.imageUrl),
-                                  fit: .cover,
+                                  fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return Icon(Icons.image);
+                                    return const Icon(Icons.image);
                                   },
                                 )
-                              : Icon(Icons.image),
+                              : const Icon(Icons.image),
                         ),
                       ),
                     ),
-
-                    /// Name And Location Name
-                    Column(
-                      mainAxisAlignment: .center,
-                      crossAxisAlignment: .start,
-
-                      children: [
-                        SecondaryText(text: entity.propertyName),
-                        Row(
-                          mainAxisAlignment: .start,
-                          mainAxisSize: .min,
-                          children: [
-                            Icon(Icons.location_on_outlined),
-                            SmallText(text: entity.propertyLocation),
-                          ],
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SecondaryText(text: entity.propertyName),
+                          SizedBox(height: 4.h),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 16.r,
+                                color: AppColors.iconsColor,
+                              ),
+                              SizedBox(width: 2.w),
+                              Flexible(
+                                child: SmallText(text: entity.propertyLocation),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    Spacer(),
                     Card(
+                      margin: EdgeInsets.zero,
                       child: PopupMenuButton<String>(
                         surfaceTintColor: AppColors.primary,
-                        borderRadius: .circular(12.r),
-                        icon: Icon(Icons.more_vert), // 3 dots
+                        borderRadius: BorderRadius.circular(12.r),
+                        icon: const Icon(Icons.more_vert),
                         onSelected: (value) async {
                           switch (value) {
-                            case 'add expense':
-                              final result = await context.push(
-                                RoutesName.addExpenseScreen,
-                                extra: entity.cardId.toString(),
-                              );
-                              if (result == true) {
-                                if (!context.mounted) return;
-                                context.read<DashboardBloc>().add(
-                                  GetPropertiesEvent(),
-                                );
-                              }
-                              break;
-                            case 'summary':
-                              context.push(
-                                RoutesName.monthlySummary,
-                                extra: entity.cardId,
-                              );
-                              break;
                             case 'edit':
                               final result = await context.push(
                                 RoutesName.addPropertyScreen,
@@ -151,31 +153,11 @@ class HomeCard extends StatelessWidget {
                         },
                         itemBuilder: (context) => [
                           PopupMenuItem(
-                            value: 'add expense',
-                            child: Row(
-                              mainAxisAlignment: .spaceBetween,
-                              children: [
-                                Text('Add Expense'),
-                                Icon(Icons.arrow_forward_ios, size: 15.r),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'summary',
-                            child: Row(
-                              mainAxisAlignment: .spaceBetween,
-                              children: [
-                                Text('Summary'),
-                                Icon(Icons.arrow_forward_ios, size: 15.r),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
                             value: 'edit',
                             child: Row(
-                              mainAxisAlignment: .spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Edit'),
+                                const Text('Edit'),
                                 Icon(Icons.arrow_forward_ios, size: 15.r),
                               ],
                             ),
@@ -183,9 +165,9 @@ class HomeCard extends StatelessWidget {
                           PopupMenuItem(
                             value: 'delete',
                             child: Row(
-                              mainAxisAlignment: .spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Delete'),
+                                const Text('Delete'),
                                 Icon(Icons.arrow_forward_ios, size: 15.r),
                               ],
                             ),
@@ -197,89 +179,169 @@ class HomeCard extends StatelessWidget {
                 ),
               ),
 
-              /// Card Footer
-              SizedBox(
-                height: 88.h,
-                width: double.infinity,
-                child: Column(
-                  mainAxisAlignment: .spaceBetween,
-                  crossAxisAlignment: .start,
-                  children: [
-                    /// This month expenses and Budget
-                    SmallText(text: DashboardText.totalExpense),
-                    Row(
-                      mainAxisAlignment: .spaceBetween,
-                      children: [
-                        SecondaryText(
-                          text: entity.monthlyExpenses.toString(),
-                          style: context.secondaryText!.copyWith(
-                            color: entity.progress! < 100
-                                ? AppColors.primary
-                                : AppColors.redColor,
-                          ),
-                        ),
-                        SmallText(
-                          style: entity.progress! < 100
-                              ? null
-                              : context.smallText!.copyWith(
-                                  color: AppColors.redColor,
-                                ),
-                          text:
-                              DashboardText.budget +
-                              entity.monthlyBudget.toString(),
-                        ),
-                      ],
-                    ),
+              SizedBox(height: 14.h),
 
-                    /// Budget progress
-                    LinearProgressIndicator(
-                      minHeight: 12.h,
-                      backgroundColor: AppColors.white,
-
-                      value: entity.progress!.toDouble() / 100,
-                      valueColor: AlwaysStoppedAnimation(
-                        entity.progress! < 100
-                            ? AppColors.primary
-                            : AppColors.redColor,
-                      ),
-                      borderRadius: .circular(10.r),
+              /// Expense + budget
+              SmallText(text: DashboardText.totalExpense),
+              SizedBox(height: 4.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SecondaryText(
+                    text: entity.monthlyExpenses.toString(),
+                    style: context.secondaryText!.copyWith(
+                      color: isOverBudget
+                          ? AppColors.redColor
+                          : AppColors.primary,
                     ),
+                  ),
+                  SmallText(
+                    style: isOverBudget
+                        ? context.smallText!.copyWith(color: AppColors.redColor)
+                        : null,
+                    text:
+                        DashboardText.budget + entity.monthlyBudget.toString(),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              LinearProgressIndicator(
+                minHeight: 10.h,
+                backgroundColor: AppColors.white,
+                value: (entity.progress ?? 0).toDouble() / 100,
+                valueColor: AlwaysStoppedAnimation(
+                  isOverBudget ? AppColors.redColor : AppColors.primary,
+                ),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              SizedBox(height: 6.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if ((entity.progress ?? 0) > 100)
                     Row(
-                      mainAxisAlignment: .spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (entity.progress! > 100)
-                          Row(
-                            spacing: 5.w,
-                            mainAxisSize: .min,
-                            crossAxisAlignment: .start,
-                            children: [
-                              Icon(
-                                Icons.warning_amber,
-                                color: AppColors.redColor,
-                              ),
-                              SmallText(
-                                text: DashboardText.overBudget,
-                                style: context.smallText!.copyWith(
-                                  color: AppColors.redColor,
-                                  fontWeight: .bold,
-                                ),
-                              ),
-                            ],
-                          )
-                        else
-                          SizedBox(),
+                        Icon(
+                          Icons.warning_amber,
+                          color: AppColors.redColor,
+                          size: 16.r,
+                        ),
+                        SizedBox(width: 4.w),
                         SmallText(
-                          text: '${entity.progress!.toInt()}%',
+                          text: DashboardText.overBudget,
                           style: context.smallText!.copyWith(
-                            color: entity.progress! < 100
-                                ? AppColors.primary
-                                : AppColors.redColor,
-                            fontWeight: .bold,
+                            color: AppColors.redColor,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
+                    )
+                  else
+                    const SizedBox.shrink(),
+                  SmallText(
+                    text: '${(entity.progress ?? 0).toInt()}%',
+                    style: context.smallText!.copyWith(
+                      color: isOverBudget
+                          ? AppColors.redColor
+                          : AppColors.primary,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 12.h),
+              Divider(
+                height: 1.h,
+                thickness: 1,
+                color: AppColors.primary.withOpacity(0.12),
+              ),
+              SizedBox(height: 12.h),
+
+              /// Actions
+              Row(
+                children: [
+                  Expanded(
+                    child: _HomeCardActionButton(
+                      label: DashboardText.viewSummary,
+                      icon: Icons.bar_chart_rounded,
+                      isPrimary: false,
+                      onTap: () => _onViewSummary(context),
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: _HomeCardActionButton(
+                      label: DashboardText.addExpense,
+                      icon: Icons.add_rounded,
+                      isPrimary: true,
+                      onTap: () => _onAddExpense(context),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeCardActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isPrimary;
+  final VoidCallback onTap;
+
+  const _HomeCardActionButton({
+    required this.label,
+    required this.icon,
+    required this.isPrimary,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10.r),
+        child: Ink(
+          height: 40.h,
+          decoration: BoxDecoration(
+            color: isPrimary
+                ? AppColors.primary
+                : AppColors.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10.r),
+            border: isPrimary
+                ? null
+                : Border.all(
+                    color: AppColors.primary.withOpacity(0.35),
+                    width: 1.2,
+                  ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16.r,
+                color: isPrimary ? AppColors.white : AppColors.primaryDark,
+              ),
+              SizedBox(width: 6.w),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.smallText!.copyWith(
+                    color: isPrimary ? AppColors.white : AppColors.primaryDark,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12.sp,
+                  ),
                 ),
               ),
             ],

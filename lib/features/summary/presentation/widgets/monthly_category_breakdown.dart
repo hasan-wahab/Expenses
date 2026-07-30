@@ -124,7 +124,8 @@ class ListTileLayout extends StatelessWidget {
                         /// Linear Progress Indicator
                         LinearProgressIndicator(
                           color: AppColors.primary,
-                          value: categoryBreakdown[index].progress / 100,
+                          value: (categoryBreakdown[index].progress / 100)
+                              .clamp(0.0, 1.0),
                         ),
                       ],
                     ),

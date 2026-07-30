@@ -80,8 +80,6 @@ class SyncRepo {
       }
     } catch (e) {
       print("Properties Sync Error: $e");
-
-      throw e.toString();
     }
   }
 
@@ -91,9 +89,10 @@ class SyncRepo {
       return;
     }
     try {
+      final currentUserEmail = await localSource.getCurrentUserEmail();
       /// Get all expenses from local source
       List<PropertyModel> properties = await localSource.getPropertiesList(
-        currentUserEmail: await localSource.getCurrentUserEmail(),
+        currentUserEmail: currentUserEmail,
       );
       if (properties.isEmpty) return;
       List<ExpenseModel> expensesList = await expenseLocalSource

@@ -29,11 +29,20 @@ class AuthRepo implements AuthRemoteRepoInter {
       password: password,
     );
 
+    final loginEmail = email.trim();
+    final savedEmail = await authLocalSource.getCurrentUserEmailOrNull();
+
+    /// Different account → clear old saved email, then save new one
+    if (savedEmail != null &&
+        savedEmail.trim().toLowerCase() != loginEmail.toLowerCase()) {
+      await authLocalSource.delete();
+    }
+
     /// Save user in local storage
     await authLocalSource.save(model: user);
 
-    /// Save user email in local storage
-    await authLocalSource.saveCurrentUserEmail(email: email);
+    /// Save / keep current user email
+    await authLocalSource.saveCurrentUserEmail(email: loginEmail);
 
     return user;
   }
@@ -46,6 +55,11 @@ class AuthRepo implements AuthRemoteRepoInter {
 
   @override
   Future loginWithFingerPrint() async {
+    final savedEmail = await authLocalSource.getCurrentUserEmailOrNull();
+    if (savedEmail == null) {
+      throw 'Login first, then enable fingerprint in Settings.';
+    }
+
     try {
       LocalAuthentication local = LocalAuthentication();
       await local.authenticate(
@@ -60,5 +74,20 @@ class AuthRepo implements AuthRemoteRepoInter {
 
   Future<bool> getFingerPrint() async {
     return await authLocalSource.getFingerPrint();
+  }
+
+  Future<String?> getSavedEmail() async {
+    return await authLocalSource.getCurrentUserEmailOrNull();
+  }
+
+  Future<bool> hasValidSession() async {
+    if (authRemoteSource.currentUser == null) return false;
+    final email = await authLocalSource.getCurrentUserEmailOrNull();
+    return email != null && email.isNotEmpty;
+  }
+
+  Future<void> logout() async {
+    /// Keep saved email for fingerprint login; only clear Firebase session
+    await authRemoteSource.signOut();
   }
 }

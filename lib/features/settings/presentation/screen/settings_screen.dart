@@ -1,13 +1,13 @@
-import 'dart:math';
-
 import 'package:expense_app/core/constant/const_text/settings_screen_text.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/router/routes_name.dart';
+import 'package:expense_app/features/auth/domain/usescases/auth_usecases.dart';
 import 'package:expense_app/features/settings/domain/entitity/settings_entity.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_events.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_states.dart';
 import 'package:expense_app/features/settings/presentation/widgets/export_card.dart';
+import 'package:expense_app/features/sync_data/domain/usescases/sync_data_use_cases.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +84,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () {
                       context.showConfirmationDialog(
                         message: 'Are you sure you want to logout?',
-                        onYesPressed: () => context.go(RoutesName.login),
+                        onYesPressed: () async {
+                          /// Stop background sync before clearing session email
+                          sl<SyncDataUseCases>().stopSync();
+                          await sl<AuthUseCases>().logoutCall();
+                          if (!context.mounted) return;
+                          context.go(RoutesName.login);
+                        },
                       );
                     },
                   ),

@@ -6,6 +6,8 @@ class MonthlySummaryText {
   static String get overview => 'Expense Overview';
   static String get pastFiveMonth => 'Past 5 Months';
   static String get cateBreakdown => 'Category Breakdown';
+  static String get noExpenseAdded =>
+      'No expenses added yet.\nAdd an expense to view summary.';
   static String get petrol => 'Petrol';
   static String get gas => 'Gas';
   static String get electricity => 'Electricity';

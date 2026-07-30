@@ -53,6 +53,20 @@ class AuthLocalSource {
     }
   }
 
+  Future<String?> getCurrentUserEmailOrNull() async {
+    try {
+      final result = await sqfLiteCurd.get(
+        tableKey: TableKeys.currentUserEmailTable,
+      );
+      if (result.isEmpty) return null;
+      final email = result.first['email'];
+      if (email == null || email.toString().isEmpty) return null;
+      return email.toString();
+    } on Exception {
+      return null;
+    }
+  }
+
   Future saveCurrentUserEmail({required String email}) async {
     try {
       await sqfLiteCurd.save(

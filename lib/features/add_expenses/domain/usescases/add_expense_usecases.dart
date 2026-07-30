@@ -1,13 +1,19 @@
-import 'package:expense_app/core/constant/app_key/table_keys.dart';
+import 'package:expense_app/core/data_source/local_image_source/image_source_repo.dart';
 import 'package:expense_app/features/add_expenses/data/expenses_repo.dart';
 import 'package:expense_app/features/add_expenses/domain/entitity/add_expense_entity_model.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/expense_model.dart';
 
 class AddExpenseUseCases {
   ExpensesRepo expensesRepo;
-  AddExpenseUseCases({required this.expensesRepo});
+  LocalImageSource imageSourceRepo;
+
+  AddExpenseUseCases({
+    required this.expensesRepo,
+    required this.imageSourceRepo,
+  });
 
   Future addCategoryCall({required String categoryName}) async {
     await expensesRepo.addNewCategory(categoryName);
@@ -20,9 +26,28 @@ class AddExpenseUseCases {
   }
 
   Future addNewExpenseCall({required ExpenseEntity entityModel}) async {
+    final receiptPath = (entityModel.receiptImage == null ||
+            entityModel.receiptImage!.isEmpty)
+        ? ''
+        : await saveImageFileInLocalDirCall(entityModel.receiptImage!);
+
     await expensesRepo.addNewExpense(
-      model: ExpenseModel.fromEntity(entityModel),
+      model: ExpenseModel.fromEntity(
+        entityModel.copyWith(receiptImage: receiptPath),
+      ),
     );
+  }
+
+  Future<XFile?> galleryImageCall() async {
+    return await imageSourceRepo.galleryImage();
+  }
+
+  Future<XFile?> cameraImageCall() async {
+    return await imageSourceRepo.cameraImage();
+  }
+
+  Future<String> saveImageFileInLocalDirCall(String tempPath) async {
+    return await imageSourceRepo.saveImageLocalDir(tempPath);
   }
 
   Future<List<DashboardCardEntity>> getPropertyCardCall() async {

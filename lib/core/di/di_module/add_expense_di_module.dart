@@ -1,4 +1,5 @@
 import 'package:expense_app/core/data_source/expense_data_source/expense_local_source.dart';
+import 'package:expense_app/core/data_source/local_image_source/image_source_repo.dart';
 import 'package:expense_app/core/di/di_module/di_module.dart';
 import 'package:get_it/get_it.dart';
 
@@ -33,7 +34,10 @@ class AddExpenseDiModule implements DIModule {
         ),
       )
       ..registerLazySingleton(
-        () => AddExpenseUseCases(expensesRepo: sl<ExpensesRepo>()),
+        () => AddExpenseUseCases(
+          expensesRepo: sl<ExpensesRepo>(),
+          imageSourceRepo: sl<LocalImageSource>(),
+        ),
       );
     sl.registerFactory(
       () => AddExpensesBloc(useCases: sl<AddExpenseUseCases>()),

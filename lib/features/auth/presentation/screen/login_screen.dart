@@ -3,18 +3,11 @@ import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/extensions/string_extension.dart';
 import 'package:expense_app/core/router/routes_name.dart';
-import 'package:expense_app/core/utils/validation_utils.dart';
+import 'package:expense_app/features/auth/domain/usescases/auth_usecases.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_events.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_states.dart';
 import 'package:expense_app/features/auth/presentation/widgets/login_form.dart';
-import 'package:expense_app/features/widgets/app_b_text.dart';
-import 'package:expense_app/features/widgets/app_t_field.dart';
-import 'package:expense_app/features/widgets/extra_large_text.dart';
-import 'package:expense_app/features/widgets/extra_small_text.dart';
-import 'package:expense_app/features/widgets/large_text.dart';
-import 'package:expense_app/features/widgets/priamary_butn.dart';
-import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,6 +16,7 @@ import 'package:app_settings/app_settings.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/di/get_it.dart';
+import '../../../../core/extensions/text_controller_extension.dart';
 import '../../../widgets/small_text.dart';
 import '../widgets/login_header.dart';
 
@@ -39,6 +33,24 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isObscure = true;
 
   @override
+  void initState() {
+    super.initState();
+    _prefillSavedEmail();
+  }
+
+  Future<void> _prefillSavedEmail() async {
+    final savedEmail = await sl<AuthUseCases>().getSavedEmailCall();
+    if (!mounted || savedEmail == null) return;
+    emailCtrl.text = savedEmail;
+  }
+
+  @override
+  void dispose() {
+    [emailCtrl, passwordCtrl].disposeAll();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<AuthBloc>(),
@@ -52,10 +64,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
             /// If user User Successfully login then go to Nave Bar Page
             if (state.status == Status.success) {
+              passwordCtrl.reset();
               if (state.message == 'Login with fingerprint') {
                 context.pop();
                 context.push(RoutesName.syncDataScreen, extra: true);
               } else {
+                emailCtrl.reset();
                 context.push(RoutesName.syncDataScreen, extra: false);
               }
             }
@@ -106,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         SmallText(text: AuthText.dontHaveAccount),
                         InkWell(
-                          onTap: () => context.push(RoutesName.singUp),
+                          onTap: () => context.go(RoutesName.singUp),
                           child: SmallText(
                             text: AuthText.signUp,
                             style: context.smallText!.copyWith(

@@ -18,17 +18,20 @@ class NotificationScreen extends StatelessWidget {
         title: NotificationText.appBarText,
         actionIcon1: Icons.notifications,
       ),
-      body: ListView(
-        padding: .symmetric(horizontal: 20.w),
-        children: [
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: .symmetric(horizontal: 20.w),
+          children: [
 
-          SizedBox(height: 24.h,),
-          /// Header
-          NotifHeader(),
-          SizedBox(height: 24.h,),
-          /// Notification Settings Sections
-          NotificationSettingsSection(),
-        ],
+            SizedBox(height: 24.h,),
+            /// Header
+            NotifHeader(),
+            SizedBox(height: 24.h,),
+            /// Notification Settings Sections
+            NotificationSettingsSection(),
+          ],
+        ),
       ),
     );
 

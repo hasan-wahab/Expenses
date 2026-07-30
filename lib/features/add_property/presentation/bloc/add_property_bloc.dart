@@ -24,10 +24,7 @@ class AddPropertyBloc extends Bloc<AddPropertyEvent, AddPropertyStates> {
   ) async {
     try {
       emit(GetAddedPropertyCardState(status: Status.loading));
-      if (event.model.imageUrl.isEmpty ||
-          event.model.imageUrl == '' ||
-          event.model.imageUrl.isEmpty ||
-          event.model.propertyName == '' ||
+      if (event.model.propertyName == '' ||
           event.model.propertyLocation.isEmpty ||
           event.model.propertyLocation == '' ||
           event.model.monthlyBudget == 0.0 ||
@@ -41,9 +38,9 @@ class AddPropertyBloc extends Bloc<AddPropertyEvent, AddPropertyStates> {
           ),
         );
       } else {
-        String path = await useCases.saveImageFileInLocalDirCall(
-          event.model.imageUrl,
-        );
+        String path = event.model.imageUrl.isEmpty
+            ? ''
+            : await useCases.saveImageFileInLocalDirCall(event.model.imageUrl);
         await useCases.addPropertyCall(
           model: event.model.copyWith(imageUrl: path),
         );

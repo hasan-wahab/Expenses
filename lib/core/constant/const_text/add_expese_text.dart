@@ -6,7 +6,7 @@ class AddExpenseText {
   static String get date => 'Select date';
   static String get notes => 'Notes (Optional)';
   static String get addHere => 'Add notes here...';
-  static String get uploadReceipt => 'Upload Receipt';
+  static String get uploadReceipt => 'Upload Receipt (Optional)';
   static String get choseImage => 'Choose Image or click to upload';
   static String get saveExpense => 'Save Expense';
   static String get petrol => 'Petrol';

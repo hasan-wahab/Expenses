@@ -18,6 +18,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/get_it.dart';
+import '../../../../core/extensions/text_controller_extension.dart';
 import '../../../../core/utils/validation_utils.dart';
 
 class SignUpForm extends StatefulWidget {
@@ -35,6 +36,12 @@ class _SignUpFormState extends State<SignUpForm> {
   bool isAgree = false;
 
   @override
+  void dispose() {
+    [usernameCtr, emailCtr, passwordCtr, cPasswordCtr].disposeAll();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<AuthBloc>(),
@@ -45,9 +52,14 @@ class _SignUpFormState extends State<SignUpForm> {
               context.showCustomLoading();
             }
             if (state.status == Status.error) {
+              if (context.canPop()) {
+                context.pop();
+              }
               context.showSnackBar(state.message);
             }
             if (state.status == Status.success) {
+              [usernameCtr, emailCtr, passwordCtr, cPasswordCtr].resetAll();
+              isAgree = false;
               Navigator.of(context, rootNavigator: true).pop();
               context.showSnackBar(state.message);
               context.go(RoutesName.login);

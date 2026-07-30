@@ -26,4 +26,16 @@ class AuthUseCases {
   Future getFingerPrintCall() async {
     return await repo.getFingerPrint();
   }
+
+  Future<String?> getSavedEmailCall() async {
+    return await repo.getSavedEmail();
+  }
+
+  Future<bool> hasValidSessionCall() async {
+    return await repo.hasValidSession();
+  }
+
+  Future<void> logoutCall() async {
+    await repo.logout();
+  }
 }

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:expense_app/core/constant/const_text/personal_information_text.dart';
 import 'package:expense_app/features/personal_info/presentation/bloc/personal_info_bloc.dart';
 import 'package:expense_app/features/personal_info/presentation/bloc/personal_info_events.dart';
@@ -15,9 +13,9 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constant/enums.dart';
-import '../../../../core/constant/wrapers.dart';
 import '../../../../core/di/get_it.dart';
 import '../../../../core/extensions/context_extension.dart';
+import '../../../../core/extensions/text_controller_extension.dart';
 import '../widget/circle_avatar_widget.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
@@ -35,25 +33,26 @@ class PersonalInfoScreen extends StatefulWidget {
 
 class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   XFile? image;
-  TextEditingController nameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
 
   @override
   void initState() {
-    nameController = TextEditingController(text: widget.entityModel.name);
-    emailController = TextEditingController(text: widget.entityModel.email);
-    phoneController = TextEditingController(text: widget.entityModel.phone);
-    log("From Init State${emailController.text}");
     super.initState();
+    nameController.text = widget.entityModel.name ?? '';
+    emailController.text = widget.entityModel.email ?? '';
+    phoneController.text = widget.entityModel.phone ?? '';
+  }
+
+  @override
+  void dispose() {
+    [nameController, emailController, phoneController].disposeAll();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print(widget.mode);
-
-
-
     return BlocProvider(
       create: (context) => sl<PersonalInfoBloc>(),
       child: BlocConsumer<PersonalInfoBloc, PersonalInfoStates>(
@@ -75,6 +74,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               context.showCustomLoading();
             }
             if (state.status == Status.success) {
+              [nameController, emailController, phoneController].resetAll();
+              image = null;
               Navigator.pop(context);
               context.showSnackBar(state.message!);
               context.pop(true);
@@ -87,17 +88,21 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         builder: (context, state) {
           return Scaffold(
             appBar: CustomAppBar(title: PersonalInformationText.appBarText),
-            body: ListView(
-              padding: .symmetric(horizontal: 20.w),
-              children: [
+            body: SafeArea(
+              top: false,
+              child: ListView(
+                padding: .symmetric(horizontal: 20.w),
+                children: [
                 SizedBox(height: 24.h),
 
                 /// Circle Avatar
                 CircleAvatarWidget(
                   mode: widget.mode,
-                  onTap: () {
+                  onTap: () async {
+                    final source = await context.showImageSourcePicker();
+                    if (source == null || !context.mounted) return;
                     context.read<PersonalInfoBloc>().add(
-                      PickImageEvent(source: ImageSource.gallery),
+                      PickImageEvent(source: source),
                     );
                   },
                   imagePath: image?.path ?? widget.entityModel.imageUrl,
@@ -137,6 +142,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                       )
                     : Container(),
               ],
+              ),
             ),
           );
         },

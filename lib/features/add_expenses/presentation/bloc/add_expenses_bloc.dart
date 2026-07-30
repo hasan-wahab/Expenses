@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:expense_app/core/constant/enums.dart';
-import 'package:expense_app/features/add_expenses/data/expenses_repo.dart';
 import 'package:expense_app/features/add_expenses/domain/usescases/add_expense_usecases.dart';
 import 'package:expense_app/features/add_expenses/presentation/bloc/add_expenses_event.dart';
-import 'package:expense_app/features/add_property/presentation/bloc/add_property_event.dart'
-    hide AddNewCategoryEvent;
-import 'package:expense_app/features/dashboard/data/models/property_card_model.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'add_expenses_states.dart';
 
@@ -21,6 +17,7 @@ class AddExpensesBloc extends Bloc<AddExpensesEvent, AddExpensesStates> {
     on<SaveExpensesEvent>(_saveExpensesEvent);
     on<SelectCategoryEvent>(_selectCategoryEvent);
     on<GetPropertyCardEvent>(_getPropertyCardEvent);
+    on<OnPickReceiptImageEvent>(_onPickReceiptImageEvent);
   }
 
   FutureOr<void> _addNewCategoryEvent(
@@ -78,6 +75,26 @@ class AddExpensesBloc extends Bloc<AddExpensesEvent, AddExpensesStates> {
       );
     } catch (e) {
       emit(GetPropertyCardState(status: Status.error, message: e.toString()));
+    }
+  }
+
+  FutureOr<void> _onPickReceiptImageEvent(
+    OnPickReceiptImageEvent event,
+    Emitter<AddExpensesStates> emit,
+  ) async {
+    XFile? imagePath;
+    try {
+      emit(PickReceiptImageState(status: Status.loading));
+      if (event.imageSource == ImageSource.gallery) {
+        imagePath = await useCases.galleryImageCall();
+      } else {
+        imagePath = await useCases.cameraImageCall();
+      }
+      emit(PickReceiptImageState(status: Status.success, imagePath: imagePath));
+    } catch (e) {
+      emit(
+        PickReceiptImageState(status: Status.error, message: e.toString()),
+      );
     }
   }
 }

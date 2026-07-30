@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/const_text/monthly_summary_text.dart';
 import 'package:expense_app/core/constant/const_text/property_screen_text.dart';
@@ -19,7 +17,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/di/get_it.dart';
-import '../../../../core/utils/image_picker.dart';
+import '../../../../core/extensions/text_controller_extension.dart';
 import '../../../widgets/cusom_appbar.dart';
 import '../../../widgets/priamary_butn.dart';
 import '../bloc/add_property_event.dart';
@@ -41,28 +39,45 @@ class AddPropertyScreen extends StatefulWidget {
 }
 
 class _AddPropertyScreenState extends State<AddPropertyScreen> {
-  TextEditingController propertyNameController = TextEditingController();
-  TextEditingController propertyLocationController = TextEditingController();
-  TextEditingController targetBudgetController = TextEditingController();
+  final TextEditingController propertyNameController = TextEditingController();
+  final TextEditingController propertyLocationController =
+      TextEditingController();
+  final TextEditingController targetBudgetController = TextEditingController();
 
   String propertyType = '';
   XFile? image;
 
   @override
   void initState() {
-    final property = widget.cardEntity;
-    propertyNameController = TextEditingController(
-      text: property?.propertyName,
-    );
-    propertyLocationController = TextEditingController(
-      text: property?.propertyLocation,
-    );
-    targetBudgetController = TextEditingController(
-      text: property?.monthlyBudget.toString(),
-    );
-    propertyType = property?.categoryType ?? '';
-    image = property != null ? XFile(property.imageUrl) : image;
     super.initState();
+    final property = widget.cardEntity;
+    propertyNameController.text = property?.propertyName ?? '';
+    propertyLocationController.text = property?.propertyLocation ?? '';
+    targetBudgetController.text = property?.monthlyBudget.toString() ?? '';
+    propertyType = property?.categoryType ?? '';
+    image = property != null && property.imageUrl.isNotEmpty
+        ? XFile(property.imageUrl)
+        : null;
+  }
+
+  void _resetForm() {
+    [
+      propertyNameController,
+      propertyLocationController,
+      targetBudgetController,
+    ].resetAll();
+    propertyType = '';
+    image = null;
+  }
+
+  @override
+  void dispose() {
+    [
+      propertyNameController,
+      propertyLocationController,
+      targetBudgetController,
+    ].disposeAll();
+    super.dispose();
   }
 
   @override
@@ -85,6 +100,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           }
           if (state is GetAddedPropertyCardState) {
             if (state.status == Status.success) {
+              _resetForm();
               context.pop(true);
             }
             if (state.status == Status.error) {
@@ -96,17 +112,21 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           return Scaffold(
             backgroundColor: AppColors.bgColor,
             appBar: CustomAppBar(title: 'Add Property Card'),
-            body: ListView(
-              padding: .symmetric(horizontal: 20.w),
-              children: [
+            body: SafeArea(
+              top: false,
+              child: ListView(
+                padding: .symmetric(horizontal: 20.w),
+                children: [
                 SizedBox(height: 24.h),
 
                 /// Pick Image Container of the Property
                 CardPickImage(
                   imagePath: image,
-                  onTap: () {
+                  onTap: () async {
+                    final source = await context.showImageSourcePicker();
+                    if (source == null || !context.mounted) return;
                     context.read<AddPropertyBloc>().add(
-                      OnPickImageEvent(imageSource: ImageSource.gallery),
+                      OnPickImageEvent(imageSource: source),
                     );
                   },
                 ),
@@ -201,6 +221,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   },
                 ),
               ],
+              ),
             ),
           );
         },

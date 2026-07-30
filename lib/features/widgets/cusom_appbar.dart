@@ -15,6 +15,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? actionIcon1Ontap;
   final VoidCallback? actionIcon2Ontap;
   final String? profileImagePath;
+
   CustomAppBar({
     super.key,
     this.isLeading = false,
@@ -30,73 +31,90 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return SafeArea(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        width: double.infinity,
-        height: 56.h,
-        decoration: BoxDecoration(
-          color: AppColors.bgColor,
-          boxShadow: [
-            BoxShadow(color: AppColors.primary, offset: Offset(0, 1)),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Row(
-                crossAxisAlignment: .center,
-                spacing: 3.w,
-                mainAxisAlignment: .start,
-                children: [
-                  isLeading
-                      ? InkWell(
-                          onTap: leadingOnTap ?? () => context.pop(),
-                          child: Icon(leadingIcon),
-                        )
-                      : Container(),
-                  AppBarText(text: title),
-                ],
+    return Container(
+      color: AppColors.bgColor,
+      child: SafeArea(
+        bottom: false,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          width: double.infinity,
+          height: 56.h,
+          decoration: BoxDecoration(
+            color: AppColors.bgColor,
+            boxShadow: [
+              BoxShadow(color: AppColors.primary, offset: Offset(0, 1)),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 3.w,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    isLeading
+                        ? InkWell(
+                            onTap: leadingOnTap ?? () => context.pop(),
+                            child: Icon(leadingIcon),
+                          )
+                        : const SizedBox.shrink(),
+                    AppBarText(text: title),
+                  ],
+                ),
               ),
-            ),
-            profileImagePath != null
-                ? Container(
-                    padding: .all(5.r),
-                    decoration: BoxDecoration(
-                      color: AppColors.bannerYellowColor,
-                      shape: .circle,
-                    ),
-                    child: Icon(Icons.person),
-                  )
-                : Expanded(
-                    flex: 1,
-                    child: Row(
-                      spacing: actionIcon2 != null ? 10.w : 0,
-                      crossAxisAlignment: .center,
-                      mainAxisAlignment: .end,
-                      children: [
-                        actionIcon1 != null
-                            ? InkWell(
-                                onTap: actionIcon1Ontap,
-                                child: InkWell(
-                                  onTap: actionIcon2Ontap,
-                                  child: Icon(actionIcon1),
+              profileImagePath != null
+                  ? Container(
+                      padding: EdgeInsets.all(5.r),
+                      decoration: BoxDecoration(
+                        color: AppColors.bannerYellowColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.person),
+                    )
+                  : Expanded(
+                      flex: 1,
+                      child: Row(
+                        spacing: actionIcon2 != null ? 10.w : 0,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (actionIcon1 != null)
+                            InkWell(
+                              onTap: actionIcon1Ontap,
+                              borderRadius: BorderRadius.circular(20.r),
+                              child: Padding(
+                                padding: EdgeInsets.all(4.r),
+                                child: Icon(
+                                  actionIcon1,
+                                  color: AppColors.primary,
                                 ),
-                              )
-                            : Container(),
-                        actionIcon2 != null ? Icon(actionIcon2) : Container(),
-                      ],
+                              ),
+                            ),
+                          if (actionIcon2 != null)
+                            InkWell(
+                              onTap: actionIcon2Ontap,
+                              borderRadius: BorderRadius.circular(20.r),
+                              child: Padding(
+                                padding: EdgeInsets.all(4.r),
+                                child: Icon(
+                                  actionIcon2,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   @override
-  // TODO: implement preferredSize
-  Size get preferredSize => Size.fromHeight(56.h);
+  Size get preferredSize =>
+      Size.fromHeight(56.h + ScreenUtil().statusBarHeight);
 }

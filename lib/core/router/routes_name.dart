@@ -23,4 +23,6 @@ class RoutesName {
   static String get addPropertyScreen => '/addPropertyScreen';
   static String get syncDataScreen => '/syncDataScreen';
   static String get categoryDetailScreen => '/categoryDetailScreen';
+  static String get expenseDetailScreen => '/expenseDetailScreen';
+  static String get receiptFullScreen => '/receiptFullScreen';
 }

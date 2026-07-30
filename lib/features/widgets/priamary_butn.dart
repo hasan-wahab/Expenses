@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class PrimaryButton extends StatelessWidget {
   final VoidCallback onTap;
   final double? height;
+  final double? width;
   bool isDisable;
   final String text;
   final TextStyle? style;
@@ -21,6 +22,7 @@ class PrimaryButton extends StatelessWidget {
     this.isOutline = false,
     this.style,
     this.height,
+    this.width,
   });
 
   @override
@@ -44,7 +46,7 @@ class PrimaryButton extends StatelessWidget {
             ],
           ),
           height: height ?? 48.h,
-          width: 350.w,
+          width: width ?? 350.w,
           child: isDisable
               ? CircularProgressIndicator(color: Colors.white)
               : AppBarText(

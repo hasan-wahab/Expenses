@@ -1,32 +1,25 @@
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:expense_app/core/constant/const_text/add_expese_text.dart';
 import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/extensions/date_extension.dart';
-import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/add_expenses/domain/entitity/add_expense_entity_model.dart';
 import 'package:expense_app/features/add_expenses/presentation/bloc/add_expenses_bloc.dart';
 import 'package:expense_app/features/add_expenses/presentation/widgets/add_expense_category.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
-import 'package:expense_app/features/dashboard/presentation/widgets/home_card.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_bloc.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_events.dart';
-import 'package:expense_app/features/summary/presentation/widgets/monthly_dropdown.dart';
 import 'package:expense_app/features/widgets/app_t_field.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
-import 'package:expense_app/features/widgets/secondery_text.dart';
-import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/di/get_it.dart';
+import '../../../../core/extensions/text_controller_extension.dart';
 import '../bloc/add_expenses_event.dart';
 import '../bloc/add_expenses_states.dart';
 import '../widgets/date_selection.dart';
@@ -54,6 +47,24 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
   DateTime selectedDate = DateTime.now();
   String selectedCategory = 'Other';
   TextEditingController notesController = TextEditingController();
+  XFile? receiptImage;
+
+  void _resetForm() {
+    [controller, notesController].resetAll();
+    receiptImage = null;
+    selectedDate = DateTime.now();
+    selectedCategory = 'Other';
+    if (widget.mode == AddExpenseMode.fromNavBar) {
+      selectedCard.value = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    [controller, notesController].disposeAll();
+    selectedCard.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,12 +93,27 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
           if (state is GetNewCategoryState) {
             categoryList = state.categoryList ?? [];
           }
+          if (state is PickReceiptImageState) {
+            if (state.status == Status.loading) {
+              context.showCustomLoading();
+            }
+            if (state.status == Status.success) {
+              context.pop();
+              receiptImage = state.imagePath;
+            }
+            if (state.status == Status.error) {
+              context.pop();
+              context.showSnackBar(state.message!, isError: true);
+            }
+          }
           if (state is SaveExpensesState) {
             if (state.status == Status.loading) {
               context.showCustomLoading();
             }
             if (state.status == Status.success) {
               Navigator.of(context, rootNavigator: true).pop();
+              _resetForm();
+              setState(() {});
               context.showSnackBar('Expense Added Successfully');
               if (widget.mode == AddExpenseMode.fromCard) {
                 context.pop(true);
@@ -127,8 +153,9 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
                 },
               ),
               body: SafeArea(
+                top: false,
                 child: ListView(
-                  padding: .symmetric(horizontal: 20.w),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
                   children: [
                     SizedBox(height: 24.h),
                     PropertyCardDropdown(
@@ -143,7 +170,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
 
                     /// Enter Amount Field
                     AppTField(
-                      keyboardType: .number,
+                      keyboardType: TextInputType.number,
                       controller: controller,
                       hintText: AddExpenseText.enterAmount,
                       labelText: AddExpenseText.amount,
@@ -178,6 +205,19 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
                     ),
                     SizedBox(height: 24.h),
 
+                    /// Upload Receipt Image --> Optional (before notes)
+                    UploadReceiptImage(
+                      imagePath: receiptImage,
+                      onTap: () async {
+                        final source = await context.showImageSourcePicker();
+                        if (source == null || !context.mounted) return;
+                        context.read<AddExpensesBloc>().add(
+                          OnPickReceiptImageEvent(imageSource: source),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 24.h),
+
                     /// Notes Field --> Optional
                     AppTField(
                       controller: notesController,
@@ -185,12 +225,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
                       hintText: AddExpenseText.addHere,
                       labelText: AddExpenseText.notes,
                     ),
-
                     SizedBox(height: 24.h),
-
-                    /// Upload Receipt Image
-                    // UploadReceiptImage(),
-                    // SizedBox(height: 24.h),
 
                     /// Save Expense Button
                     PrimaryButton(
@@ -211,6 +246,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
                               categoryType: selectedCategory,
                               date: selectedDate.toDisplayDate(),
                               note: notesController.text,
+                              receiptImage: receiptImage?.path ?? '',
                               amount: double.parse(controller.text),
                               propertyCardId: int.parse(selectedCard.value),
                               title: selectedCategory,

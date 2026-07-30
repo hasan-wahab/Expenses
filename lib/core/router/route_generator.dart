@@ -16,12 +16,15 @@ import 'package:expense_app/features/notification/presentation/screen/notificati
 import 'package:expense_app/features/personal_info/presentation/screen/personal_info_screen.dart';
 
 import 'package:expense_app/features/settings/presentation/screen/settings_screen.dart';
+import 'package:expense_app/features/splash/presentation/screen/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pdf/pdf.dart';
 
 import '../../features/add_expenses/domain/entitity/add_expense_entity_model.dart';
 import '../../features/category_detail/presentation/screen/category_detail_screen.dart';
+import '../../features/category_detail/presentation/screen/expense_detail_screen.dart';
+import '../../features/category_detail/presentation/screen/receipt_full_screen.dart';
 import '../../features/dashboard/presentation/screen/dashboard_screen.dart';
 import '../../features/summary/presentation/screen/summary_screen.dart';
 import '../../features/sync_data/presentation/screen/sync_data_screen.dart';
@@ -40,8 +43,12 @@ class RouteGenerator {
   );
 
   static GoRouter get route => GoRouter(
-    initialLocation: RoutesName.login,
+    initialLocation: RoutesName.splash,
     routes: [
+      _goRoute(
+        routeName: RoutesName.splash,
+        screen: (context, state) => const SplashScreen(),
+      ),
       _goRoute(
         routeName: RoutesName.login,
         screen: (context, state) => LoginScreen(),
@@ -59,7 +66,7 @@ class RouteGenerator {
       _goRoute(
         routeName: RoutesName.syncDataScreen,
         screen: (context, state) {
-          final args = state.extra as bool;
+          final args = state.extra as bool? ?? false;
           return SyncDataScreen(isFingerPrint: args);
         },
       ),
@@ -125,6 +132,22 @@ class RouteGenerator {
         screen: (context, state) {
           return CategoryDetailScreen(
             expenses: state.extra as List<ExpenseEntity>,
+          );
+        },
+      ),
+      _goRoute(
+        routeName: RoutesName.expenseDetailScreen,
+        screen: (context, state) {
+          return ExpenseDetailScreen(
+            expense: state.extra as ExpenseEntity,
+          );
+        },
+      ),
+      _goRoute(
+        routeName: RoutesName.receiptFullScreen,
+        screen: (context, state) {
+          return ReceiptFullScreen(
+            imagePath: state.extra as String,
           );
         },
       ),

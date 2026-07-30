@@ -1,4 +1,5 @@
 import 'package:expense_app/features/add_expenses/domain/entitity/add_expense_entity_model.dart';
+import 'package:image_picker/image_picker.dart';
 
 abstract class AddExpensesEvent {}
 
@@ -15,6 +16,11 @@ class AddNewCategoryEvent extends AddExpensesEvent {
 class SelectCategoryEvent extends AddExpensesEvent {
   final String categoryName;
   SelectCategoryEvent({required this.categoryName});
+}
+
+class OnPickReceiptImageEvent extends AddExpensesEvent {
+  final ImageSource imageSource;
+  OnPickReceiptImageEvent({required this.imageSource});
 }
 
 class GetNewCategoryEvent extends AddExpensesEvent {}

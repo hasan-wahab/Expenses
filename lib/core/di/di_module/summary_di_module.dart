@@ -5,6 +5,7 @@ import '../../../features/summary/data/summary_repo.dart';
 import '../../../features/summary/domain/usescases/summary_usecases.dart';
 import '../../../features/summary/presentation/bloc/summary_bloc.dart';
 import '../../data_source/expense_data_source/expense_local_source.dart';
+import '../../data_source/properties_data_source/propertis_local_source.dart';
 
 class SummaryDiModule extends DIModule {
   final GetIt sl;
@@ -13,7 +14,10 @@ class SummaryDiModule extends DIModule {
   Future<dynamic> init() async {
     sl
       ..registerLazySingleton<SummaryRepo>(
-        () => SummaryRepo(expenseLocalSource: sl<ExpenseLocalSource>()),
+        () => SummaryRepo(
+          expenseLocalSource: sl<ExpenseLocalSource>(),
+          propertiesLocalSource: sl<PropertiesLocalSource>(),
+        ),
       )
       ..registerLazySingleton(
         () => SummaryUseCases(summaryRepo: sl<SummaryRepo>()),
