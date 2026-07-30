@@ -21,8 +21,6 @@ import '../bloc/export_to_pdf_bloc.dart';
 import '../bloc/export_to_pdf_events.dart';
 import '../bloc/export_to_pdf_states.dart';
 
-
-/// Shows the real generated PDF (not just design widgets).
 class PdfPreviewScreen extends StatefulWidget {
   FutureOr<Uint8List> Function(PdfPageFormat) build;
   String propertyName;

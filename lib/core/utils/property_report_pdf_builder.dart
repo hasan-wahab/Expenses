@@ -37,6 +37,7 @@ class PropertyReportPdfBuilder {
     required String reportingPeriod,
     List<PdfExpenseItem> expenses = const [],
   }) async {
+    // Default Helvetica — no internet / Google fonts needed
     final doc = pw.Document();
     doc.addPage(
       pw.MultiPage(

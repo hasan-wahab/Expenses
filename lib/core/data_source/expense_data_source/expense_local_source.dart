@@ -25,6 +25,8 @@ class ExpenseLocalSource {
         tableKey: TableKeys.expensesTable,
         value: {'email': currentUserEmail, ...model.toMap()},
       );
+
+      // Sync/reinstall pull: property already has correct monthlyExpenses from Firebase
       if (!updateMonthlyTotal) return;
 
       /// Get property list
