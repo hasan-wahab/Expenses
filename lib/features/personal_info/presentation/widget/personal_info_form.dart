@@ -38,9 +38,9 @@ class PersonalInfoForm extends StatelessWidget {
           ),
         ),
         AppTField(
+          controller: controllers[2].text == 'null' ? null : controllers[2],
           enabled: mode == PersonalInfoMode.update ? true : false,
           keyboardType: .phone,
-          controller: controllers[2],
           startIcon: Icons.phone,
           hintText: PersonalInformationText.phoneNumber,
           labelText: PersonalInformationText.phone,

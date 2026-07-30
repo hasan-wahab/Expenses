@@ -19,7 +19,8 @@ class CategoryDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: '${expenses.first.categoryType.toString().toTitleCase()} Details',
+        title:
+            '${expenses.first.categoryType.toString().toTitleCase()} Details',
         //title: ' Details',
       ),
 
