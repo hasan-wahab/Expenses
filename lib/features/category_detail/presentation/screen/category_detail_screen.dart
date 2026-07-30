@@ -13,7 +13,6 @@ import '../../../widgets/small_text.dart';
 class CategoryDetailScreen extends StatelessWidget {
   final List<ExpenseEntity> expenses;
   const CategoryDetailScreen({super.key, required this.expenses});
-  // const CategoryDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

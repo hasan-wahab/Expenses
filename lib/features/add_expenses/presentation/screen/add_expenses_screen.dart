@@ -52,7 +52,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
   ValueNotifier selectedCard = ValueNotifier<String?>(null);
   List<String> categoryList = [];
   DateTime selectedDate = DateTime.now();
-  String? selectedCategory;
+  String selectedCategory = 'Other';
   TextEditingController notesController = TextEditingController();
 
   @override
