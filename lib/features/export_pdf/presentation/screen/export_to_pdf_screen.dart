@@ -10,7 +10,9 @@ import 'package:expense_app/features/add_expenses/presentation/widgets/property_
 import 'package:expense_app/features/export_pdf/presentation/bloc/export_to_pdf_bloc.dart';
 import 'package:expense_app/features/export_pdf/presentation/screen/pdf_preview_screen.dart';
 import 'package:expense_app/features/export_pdf/presentation/widgets/selection_period_card.dart';
+import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
+import 'package:expense_app/features/widgets/no_property_added.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,6 +42,7 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
   String? selectedPropertyName;
   String? selectedCardLocation;
   FutureOr<Uint8List>? pdfBytes;
+  bool _propertiesLoaded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -51,25 +54,23 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
           if (state is GetExpenseByPeriod) {
             switch (state.status) {
               case Status.loading:
-                context.showCustomLoading();
                 break;
               case Status.success:
-                context.pop();
-
                 pdfBytes = state.pdfBytes;
                 if (pdfBytes != null) {
                   context.push(
                     RoutesName.pdfPreviewScreen,
                     extra: PdfPreviewArgs(
                       build: (format) async => pdfBytes!,
-                      propertyName: cardEntities.first.propertyName.toString(),
+                      propertyName:
+                          selectedPropertyName ??
+                          cardEntities.first.propertyName.toString(),
                     ),
                   );
                 }
 
                 break;
               case Status.error:
-                context.pop();
                 context.showSnackBar(state.message, isError: true);
                 break;
               default:
@@ -78,16 +79,15 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
           if (state is GetAllPropertyCard) {
             switch (state.status) {
               case Status.loading:
-                context.showCustomLoading();
                 break;
               case Status.success:
-                context.pop();
                 setState(() {
-                  cardEntities = state.cardEntities!;
+                  cardEntities = state.cardEntities ?? [];
+                  _propertiesLoaded = true;
                 });
                 break;
               case Status.error:
-                context.pop();
+                setState(() => _propertiesLoaded = true);
                 context.showSnackBar(state.message, isError: true);
                 break;
               default:
@@ -95,39 +95,57 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
           }
         },
         builder: (context, state) {
+          final loading =
+              (state is GetAllPropertyCard &&
+                  state.status == Status.loading) ||
+              (state is GetExpenseByPeriod &&
+                  state.status == Status.loading);
           return Scaffold(
-            appBar: CustomAppBar(title: ExportPdfText.export),
+            appBar: CustomAppBar(
+              title: ExportPdfText.export,
+              isLeading: true,
+            ),
             body: SafeArea(
               top: false,
-              child: ListView(
-                padding: .symmetric(horizontal: 20.w),
-                children: [
-                  SizedBox(height: 24.h),
-                  HeaderCard(),
-                  SizedBox(height: 24.h),
-                  PropertyCardDropdown(
-                    propertyCardId: selectedCardId,
-                    onSelected: (String? value) {
-                      for (var a in cardEntities) {
-                        if (a.cardId.toString() == value) {
-                          selectedCardLocation = a.propertyLocation;
-                          selectedPropertyName = a.propertyName;
-                          selectedCardId = a.cardId.toString();
-                          break;
-                        }
-                      }
-                      setState(() {});
-                    },
-                    dashboardCardList: cardEntities,
-                  ),
-                  SizedBox(height: 24.h),
-                  SelectionPeriodCard(
-                    propertyCardId: selectedCardId ?? '',
-                    location: selectedCardLocation ?? '',
-                    propertyName: selectedPropertyName ?? '',
-                  ),
-                ],
-              ),
+              child: loading || !_propertiesLoaded
+                  ? AppShimmer.cards()
+                  : cardEntities.isEmpty
+                  ? NoPropertyAdded(
+                      onPropertyAdded: () {
+                        context.read<ExportToPdfBloc>().add(
+                          GetAllPropertyCardEvent(),
+                        );
+                      },
+                    )
+                  : ListView(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      children: [
+                        SizedBox(height: 24.h),
+                        HeaderCard(),
+                        SizedBox(height: 24.h),
+                        PropertyCardDropdown(
+                          propertyCardId: selectedCardId,
+                          onSelected: (String? value) {
+                            for (var a in cardEntities) {
+                              if (a.cardId.toString() == value) {
+                                selectedCardLocation = a.propertyLocation;
+                                selectedPropertyName = a.propertyName;
+                                selectedCardId = a.cardId.toString();
+                                break;
+                              }
+                            }
+                            setState(() {});
+                          },
+                          dashboardCardList: cardEntities,
+                        ),
+                        SizedBox(height: 24.h),
+                        SelectionPeriodCard(
+                          propertyCardId: selectedCardId ?? '',
+                          location: selectedCardLocation ?? '',
+                          propertyName: selectedPropertyName ?? '',
+                        ),
+                      ],
+                    ),
             ),
           );
         },

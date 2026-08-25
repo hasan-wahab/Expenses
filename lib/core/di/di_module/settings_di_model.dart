@@ -1,3 +1,4 @@
+import 'package:expense_app/core/data_source/auth_data_source/auth_remote_source.dart';
 import 'package:expense_app/core/di/di_module/di_module.dart';
 import 'package:expense_app/features/settings/data/local.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_bloc.dart';
@@ -11,7 +12,10 @@ class SettingsDiModel implements DIModule {
   @override
   Future<dynamic> init() async {
     sl.registerLazySingleton(
-      () => SettingsLocalRepo(sqfLiteCurd: sl<SqfLiteCurd>()),
+      () => SettingsLocalRepo(
+        sqfLiteCurd: sl<SqfLiteCurd>(),
+        authRemoteSource: sl<AuthRemoteSource>(),
+      ),
     );
     sl.registerFactory(() => SettingsBloc(localRepo: sl<SettingsLocalRepo>()));
   }

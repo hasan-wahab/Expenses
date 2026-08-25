@@ -47,9 +47,13 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
             spacing: 10.w,
             alignment: WrapAlignment.start,
             children: List.generate((widget.categoryName.length), (index) {
+              final isAddNew = index + 1 == widget.categoryName.length;
+              final isSelected =
+                  selectedIndex != null && selectedIndex == index;
+
               return InkWell(
                 onTap: () async {
-                  if (index + 1 != widget.categoryName.length) {
+                  if (!isAddNew) {
                     selectedIndex = index;
                     setState(() {});
                     context.read<AddExpensesBloc>().add(
@@ -67,10 +71,16 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                           value: context.read<AddExpensesBloc>(),
                           child: AddNewCategoryDialogDesign(
                             onTap: () {
+                              final name = controller.text.trim();
+                              if (name.isEmpty) {
+                                context.showSnackBar(
+                                  'Enter your category name',
+                                  isError: true,
+                                );
+                                return;
+                              }
                               context.read<AddExpensesBloc>().add(
-                                AddNewCategoryEvent(
-                                  categoryName: controller.text,
-                                ),
+                                AddNewCategoryEvent(categoryName: name),
                               );
                               controller.reset();
                               context.pop();
@@ -83,10 +93,10 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                   }
                 },
                 child: Card(
-                  shadowColor: selectedIndex != null && selectedIndex == index
-                      ? AppColors.white
-                      : null,
-                  color: selectedIndex != null && selectedIndex == index
+                  shadowColor: isSelected || isAddNew ? AppColors.white : null,
+                  color: isAddNew
+                      ? AppColors.primary
+                      : isSelected
                       ? AppColors.white
                       : null,
                   child: Container(
@@ -98,7 +108,9 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                       borderRadius: BorderRadius.circular(8.r),
                       border: Border.all(
                         width: 2,
-                        color: selectedIndex != null && selectedIndex == index
+                        color: isAddNew
+                            ? AppColors.primary
+                            : isSelected
                             ? AppColors.primary
                             : Colors.transparent,
                       ),
@@ -107,15 +119,20 @@ class _AddExpenseCategoryState extends State<AddExpenseCategory> {
                       spacing: 5.2,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (isAddNew)
+                          Icon(Icons.add, size: 16.r, color: context.iconOnPrimary),
                         SmallText(
                           maxLine: 1,
                           overflow: TextOverflow.fade,
                           text: widget.categoryName[index],
                           style: context.smallText!.copyWith(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
+                            color: isAddNew
+                                ? AppColors.white
+                                : AppColors.primary,
                           ),
                         ),
-                        selectedIndex != null && selectedIndex == index
+                        isSelected
                             ? const Icon(Icons.check)
                             : const SizedBox.shrink(),
                       ],
@@ -144,7 +161,7 @@ class AddNewCategoryDialogDesign extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: context.sh / 2,
+      height: context.sh / 1.5,
       child: Material(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(12.r),

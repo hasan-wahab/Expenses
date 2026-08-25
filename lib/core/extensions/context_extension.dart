@@ -18,6 +18,23 @@ extension ContextExtension on BuildContext {
   /// Text theme
   TextTheme get textTheme => Theme.of(this).textTheme;
 
+  ColorScheme get colors => Theme.of(this).colorScheme;
+
+  /// Default body icon (teal)
+  Color get iconColor => Theme.of(this).iconTheme.color ?? colors.tertiary;
+
+  /// Selected / action / accent icon (primary)
+  Color get iconAccent => colors.primary;
+
+  /// Back / unselected nav icon
+  Color get iconMuted => colors.onSurfaceVariant;
+
+  /// Icon on primary fill
+  Color get iconOnPrimary => colors.onPrimary;
+
+  /// Delete / error icon
+  Color get iconError => colors.error;
+
   /// AppBar Text Style
   TextStyle? get appBarTextStyle => textTheme.headlineSmall;
 
@@ -100,30 +117,42 @@ extension ContextExtension on BuildContext {
     );
   }
 
-  /// Loading dialog
+  /// Loading dialog (login / create account)
+  static const String _loadingRouteName = 'app_loading_dialog';
+
   void showCustomLoading() {
-    showDialog(
+    showDialog<void>(
       context: this,
       barrierDismissible: false,
+      routeSettings: const RouteSettings(name: _loadingRouteName),
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 20),
-                Text("Loading..."),
-              ],
+        return PopScope(
+          canPop: false,
+          child: Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.all(20),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 20),
+                  Text('Loading...'),
+                ],
+              ),
             ),
           ),
         );
       },
     );
+  }
+
+  void hideCustomLoading() {
+    Navigator.of(this, rootNavigator: true).popUntil((route) {
+      return route.settings.name != _loadingRouteName;
+    });
   }
 
   /// App settings
@@ -161,13 +190,11 @@ extension ContextExtension on BuildContext {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: AppColors.white,
-              onSurface: AppColors.textBlack,
-            ),
+            colorScheme: Theme.of(context).colorScheme,
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
           child: child!,
@@ -202,12 +229,18 @@ extension ContextExtension on BuildContext {
                 SecondaryText(text: 'Choose Image Source'),
                 SizedBox(height: 16.h),
                 ListTile(
-                  leading: Icon(Icons.photo_library_outlined, color: AppColors.primary),
+                  leading: Icon(
+                    Icons.photo_library_outlined,
+                    color: context.iconAccent,
+                  ),
                   title: SmallText(text: 'Gallery'),
                   onTap: () => pop(ImageSource.gallery),
                 ),
                 ListTile(
-                  leading: Icon(Icons.camera_alt_outlined, color: AppColors.primary),
+                  leading: Icon(
+                    Icons.camera_alt_outlined,
+                    color: context.iconAccent,
+                  ),
                   title: SmallText(text: 'Camera'),
                   onTap: () => pop(ImageSource.camera),
                 ),

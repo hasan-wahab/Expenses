@@ -17,14 +17,16 @@ class SettingsEntityModel {
     String? email,
     String? imageUrl,
     String? phone,
-    bool isEnableFingerPrint = false,
+    bool? isEnableFingerPrint,
   }) {
     return SettingsEntityModel(
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
       imageUrl: imageUrl ?? this.imageUrl,
-      isEnableFingerPrint: isEnableFingerPrint,
+      isEnableFingerPrint:
+          isEnableFingerPrint ?? this.isEnableFingerPrint,
     );
   }
 }
+

@@ -5,7 +5,13 @@ abstract class AddExpensesEvent {}
 
 class SaveExpensesEvent extends AddExpensesEvent {
   ExpenseEntity expenseEntity;
-  SaveExpensesEvent({required this.expenseEntity});
+  final String? propertyOwnerUid;
+  final bool isSharedWithMe;
+  SaveExpensesEvent({
+    required this.expenseEntity,
+    this.propertyOwnerUid,
+    this.isSharedWithMe = false,
+  });
 }
 
 class AddNewCategoryEvent extends AddExpensesEvent {

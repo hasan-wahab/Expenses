@@ -1,9 +1,11 @@
 import 'package:expense_app/core/constant/const_text/personal_information_text.dart';
+import 'package:expense_app/core/extensions/string_extension.dart';
 import 'package:expense_app/features/personal_info/presentation/bloc/personal_info_bloc.dart';
 import 'package:expense_app/features/personal_info/presentation/bloc/personal_info_events.dart';
 import 'package:expense_app/features/personal_info/presentation/bloc/personal_info_states.dart';
 import 'package:expense_app/features/personal_info/presentation/widget/personal_info_form.dart';
 import 'package:expense_app/features/settings/domain/entitity/settings_entity.dart';
+import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:flutter/material.dart';
@@ -40,9 +42,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   void initState() {
     super.initState();
-    nameController.text = widget.entityModel.name ?? '';
-    emailController.text = widget.entityModel.email ?? '';
-    phoneController.text = widget.entityModel.phone ?? '';
+    nameController.text = widget.entityModel.name.orEmpty;
+    emailController.text = widget.entityModel.email.orEmpty;
+    phoneController.text = widget.entityModel.phone.orEmpty;
   }
 
   @override
@@ -58,25 +60,19 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       child: BlocConsumer<PersonalInfoBloc, PersonalInfoStates>(
         listener: (context, state) {
           if (state is GetProfileImageState) {
-            if (state.status == Status.loading) {
-              context.showCustomLoading();
-            }
             if (state.status == Status.success) {
-              context.pop();
-              image = state.imagePath;
+              if (state.imagePath != null) {
+                setState(() => image = state.imagePath);
+              }
             }
             if (state.status == Status.error) {
               context.showSnackBar(state.message!, isError: true);
             }
           }
           if (state is UpdatePersonalInfoState) {
-            if (state.status == Status.loading) {
-              context.showCustomLoading();
-            }
             if (state.status == Status.success) {
               [nameController, emailController, phoneController].resetAll();
               image = null;
-              Navigator.pop(context);
               context.showSnackBar(state.message!);
               context.pop(true);
             }
@@ -86,62 +82,77 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           }
         },
         builder: (context, state) {
+          final loading =
+              (state is GetProfileImageState &&
+                  state.status == Status.loading) ||
+              (state is UpdatePersonalInfoState &&
+                  state.status == Status.loading);
           return Scaffold(
-            appBar: CustomAppBar(title: PersonalInformationText.appBarText),
+            appBar: CustomAppBar(
+              title: PersonalInformationText.appBarText,
+              isLeading: true,
+            ),
             body: SafeArea(
               top: false,
-              child: ListView(
-                padding: .symmetric(horizontal: 20.w),
+              child: loading
+                  ? AppShimmer.form()
+                  : ListView(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
                 children: [
-                SizedBox(height: 24.h),
+                  SizedBox(height: 24.h),
 
-                /// Circle Avatar
-                CircleAvatarWidget(
-                  mode: widget.mode,
-                  onTap: () async {
-                    final source = await context.showImageSourcePicker();
-                    if (source == null || !context.mounted) return;
-                    context.read<PersonalInfoBloc>().add(
-                      PickImageEvent(source: source),
-                    );
-                  },
-                  imagePath: image?.path ?? widget.entityModel.imageUrl,
-                ),
-                SizedBox(height: 24.h),
+                  /// Circle Avatar — no image → username initial; local pick → that image
+                  CircleAvatarWidget(
+                    mode: widget.mode,
+                    name: nameController.text.orEmpty.isNotEmpty
+                        ? nameController.text
+                        : widget.entityModel.email.orEmpty,
+                    onTap: () async {
+                      final source = await context.showImageSourcePicker();
+                      if (source == null || !context.mounted) return;
+                      context.read<PersonalInfoBloc>().add(
+                        PickImageEvent(source: source),
+                      );
+                    },
+                    imagePath:
+                        image?.path ?? widget.entityModel.imageUrl.orEmpty,
+                  ),
+                  SizedBox(height: 24.h),
 
-                /// Personal Info From
-                PersonalInfoForm(
-                  mode: widget.mode,
-                  controllers: [
-                    nameController,
-                    emailController,
-                    phoneController,
-                  ],
-                ),
-                SizedBox(height: 40.h),
+                  /// Personal Info From
+                  PersonalInfoForm(
+                    mode: widget.mode,
+                    controllers: [
+                      nameController,
+                      emailController,
+                      phoneController,
+                    ],
+                  ),
+                  SizedBox(height: 40.h),
 
-                /// Save Changes Button
-                widget.mode == PersonalInfoMode.update
-                    ? PrimaryButton(
-                        text: PersonalInformationText.save,
-                        onTap: () {
-                          context.read<PersonalInfoBloc>().add(
-                            UpdatePersonalInfoEvent(
-                              entityModel: widget.entityModel.copyWith(
-                                name: nameController.text,
-                                phone: phoneController.text,
-                                email: emailController.text,
-                                isEnableFingerPrint:
-                                    widget.entityModel.isEnableFingerPrint,
-                                imageUrl:
-                                    image?.path ?? widget.entityModel.imageUrl,
+                  /// Save Changes Button
+                  widget.mode == PersonalInfoMode.update
+                      ? PrimaryButton(
+                          text: PersonalInformationText.save,
+                          onTap: () {
+                            context.read<PersonalInfoBloc>().add(
+                              UpdatePersonalInfoEvent(
+                                entityModel: widget.entityModel.copyWith(
+                                  name: nameController.text,
+                                  phone: phoneController.text,
+                                  email: emailController.text,
+                                  isEnableFingerPrint:
+                                      widget.entityModel.isEnableFingerPrint,
+                                  imageUrl:
+                                      image?.path ??
+                                      widget.entityModel.imageUrl.orEmpty,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      )
-                    : Container(),
-              ],
+                            );
+                          },
+                        )
+                      : Container(),
+                ],
               ),
             ),
           );

@@ -7,6 +7,8 @@ class SyncDataUseCases {
   SyncDataUseCases({required this.syncRepo});
   Timer? _timer;
   bool firstTime = true;
+  bool _syncing = false;
+
   Future<void> syncDataCall() async {
     _timer?.cancel();
     if (firstTime) {
@@ -14,8 +16,14 @@ class SyncDataUseCases {
       firstTime = false;
     }
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      await syncRepo.syncPropertiesData();
-      await syncRepo.syncExpensesData();
+      if (_syncing) return;
+      _syncing = true;
+      try {
+        await syncRepo.syncPropertiesData();
+        await syncRepo.syncExpensesData();
+      } finally {
+        _syncing = false;
+      }
     });
   }
 

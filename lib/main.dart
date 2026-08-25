@@ -1,27 +1,90 @@
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/constant/themes/themes/themes.dart';
-import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/di/get_it.dart';
 import 'package:expense_app/core/router/route_generator.dart';
-import 'package:expense_app/features/auth/presentation/screen/login_screen.dart';
-import 'package:expense_app/features/auth/presentation/screen/sign_up_screen.dart';
+import 'package:expense_app/core/storage/sqflite.dart';
+import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: 'AIzaSyDyzrzayRJDSr1rgMcg3DJWaqdw7T0iKX8',
-      appId: '1:301740951111:android:ff6f52a6dcf72d2e20d362',
-      messagingSenderId: '301740951111',
-      projectId: 'learningapp-4c35b',
-    ),
-  );
-  await getITSetup();
 
-  runApp(const MyApp());
+  /// First Flutter frame must paint immediately so Android can dismiss
+  /// the native splash. Firebase / GetIt wait after that.
+  runApp(const _StartupApp());
+}
+
+class _StartupApp extends StatefulWidget {
+  const _StartupApp();
+
+  @override
+  State<_StartupApp> createState() => _StartupAppState();
+}
+
+class _StartupAppState extends State<_StartupApp> {
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _boot();
+  }
+
+  Future<void> _boot() async {
+    try {
+      await _initFirebase();
+      if (!sl.isRegistered<DBHelper>()) {
+        await getITSetup();
+      }
+      if (!mounted) return;
+      runApp(const MyApp());
+    } catch (e, st) {
+      debugPrint('Startup failed: $e\n$st');
+      if (mounted) setState(() => _error = e.toString());
+    }
+  }
+
+  Future<void> _initFirebase() async {
+    try {
+      if (Firebase.apps.isNotEmpty) return;
+      // Must match google-services.json client for com.neonweb.expensioapp.app
+      await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: 'AIzaSyADVsgLILrAwh57YUcShjbr2Zxb35PaBKw',
+          appId: '1:660323074036:android:ed8e7e4c0a1fbd1e7f03a1',
+          messagingSenderId: '660323074036',
+          projectId: 'tictoegame-d1f4b',
+          storageBucket: 'tictoegame-d1f4b.firebasestorage.app',
+        ),
+      ).timeout(const Duration(seconds: 12));
+    } on FirebaseException catch (e) {
+      if (e.code == 'duplicate-app') return;
+      rethrow;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: AppColors.bgColor,
+        body: Center(
+          child: _error == null
+              ? AppShimmer.boot()
+              : Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Could not start app.\n$_error',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -30,13 +93,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: Size(390, 844),
+      designSize: const Size(390, 844),
       minTextAdapt: true,
       builder: (context, child) {
         return MaterialApp.router(
-
           debugShowCheckedModeBanner: false,
-          title: 'Flutter Demo',
           theme: AppTheme.lightTheme,
           themeMode: ThemeMode.system,
           routerConfig: RouteGenerator.route,

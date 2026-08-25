@@ -17,9 +17,13 @@ class PropertyModel extends DashboardCardEntity {
     super.syncStatus,
     super.isDeleted,
     required super.propertyLocation,
+    super.ownerId,
+    super.ownerEmail,
+    super.isSharedWithMe = false,
+    super.myPermissions = const [],
   });
 
-  // ✅ COPY WITH (NEW)
+  @override
   PropertyModel copyWith({
     int? cardId,
     String? propertyName,
@@ -33,6 +37,10 @@ class PropertyModel extends DashboardCardEntity {
     String? propertyLocation,
     SyncStatus? syncStatus,
     bool? isDeleted,
+    String? ownerId,
+    String? ownerEmail,
+    bool? isSharedWithMe,
+    List<String>? myPermissions,
   }) {
     return PropertyModel(
       cardId: cardId ?? this.cardId,
@@ -47,10 +55,14 @@ class PropertyModel extends DashboardCardEntity {
       propertyLocation: propertyLocation ?? this.propertyLocation,
       syncStatus: syncStatus ?? this.syncStatus,
       isDeleted: isDeleted ?? this.isDeleted,
+      ownerId: ownerId ?? this.ownerId,
+      ownerEmail: ownerEmail ?? this.ownerEmail,
+      isSharedWithMe: isSharedWithMe ?? this.isSharedWithMe,
+      myPermissions: myPermissions ?? this.myPermissions,
     );
   }
 
-  // ✅ TO MAP (DB SAFE)
+  /// Local map including share fields (SQLite).
   Map<String, dynamic> toMap() {
     return {
       'cardId': cardId,
@@ -63,45 +75,50 @@ class PropertyModel extends DashboardCardEntity {
       'progress': progress,
       'updateAt': updateAt,
       'propertyLocation': propertyLocation,
-
-      // 🔥 FIXES
       'syncStatus': syncStatus?.name,
       'isDeleted': isDeleted == true ? 1 : 0,
+      'ownerId': ownerId ?? '',
+      'ownerEmail': ownerEmail ?? '',
+      'isSharedWithMe': isSharedWithMe ? 1 : 0,
+      'myPermissions': myPermissions.join(','),
     };
   }
 
-  // ✅ FROM MAP (DB → MODEL)
   factory PropertyModel.fromMap(Map<String, dynamic> map) {
     return PropertyModel(
-      cardId: map['cardId'],
-      propertyName: map['propertyName'],
-      imageUrl: map['imageUrl'],
-      categoryType: map['categoryType'],
-      createAt: map['createAt'],
+      cardId: _readInt(map['cardId']),
+      propertyName: (map['propertyName'] ?? '').toString(),
+      imageUrl: (map['imageUrl'] ?? '').toString(),
+      categoryType: (map['categoryType'] ?? '').toString(),
+      createAt: (map['createAt'] ?? '').toString(),
       monthlyBudget: (map['monthlyBudget'] ?? 0).toDouble(),
       monthlyExpenses: (map['monthlyExpenses'] ?? 0).toDouble(),
       progress: (map['progress'] ?? 0).toDouble(),
-      updateAt: map['updateAt'],
-      propertyLocation: map['propertyLocation'],
-
+      updateAt: map['updateAt']?.toString(),
+      propertyLocation: (map['propertyLocation'] ?? '').toString(),
       syncStatus: map['syncStatus'] != null
           ? SyncStatus.values.firstWhere(
               (e) => e.name == map['syncStatus'],
               orElse: () => SyncStatus.pending,
             )
           : SyncStatus.pending,
-
-      isDeleted: (map['isDeleted'] ?? 0) == 1,
+      isDeleted: _readBool(map['isDeleted']),
+      ownerId: (map['ownerId']?.toString() ?? '').isEmpty
+          ? null
+          : map['ownerId']?.toString(),
+      ownerEmail: (map['ownerEmail']?.toString() ?? '').isEmpty
+          ? null
+          : map['ownerEmail']?.toString(),
+      isSharedWithMe: _readBool(map['isSharedWithMe']),
+      myPermissions: _readPermissions(map['myPermissions']),
     );
   }
 
-  // ✅ JSON
   String toJson() => json.encode(toMap());
 
   factory PropertyModel.fromJson(String source) =>
       PropertyModel.fromMap(json.decode(source));
 
-  /// 🔹 Model → Entity
   DashboardCardEntity toEntity() {
     return DashboardCardEntity(
       cardId: cardId,
@@ -116,10 +133,13 @@ class PropertyModel extends DashboardCardEntity {
       propertyLocation: propertyLocation,
       syncStatus: syncStatus,
       isDeleted: isDeleted,
+      ownerId: ownerId,
+      ownerEmail: ownerEmail,
+      isSharedWithMe: isSharedWithMe,
+      myPermissions: myPermissions,
     );
   }
 
-  /// 🔹 Entity → Model
   factory PropertyModel.fromEntity(DashboardCardEntity entity) {
     return PropertyModel(
       cardId: entity.cardId,
@@ -134,6 +154,28 @@ class PropertyModel extends DashboardCardEntity {
       propertyLocation: entity.propertyLocation,
       syncStatus: entity.syncStatus,
       isDeleted: entity.isDeleted,
+      ownerId: entity.ownerId,
+      ownerEmail: entity.ownerEmail,
+      isSharedWithMe: entity.isSharedWithMe,
+      myPermissions: entity.myPermissions,
     );
+  }
+
+  static int _readInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse('$value') ?? 0;
+  }
+
+  static bool _readBool(dynamic value) {
+    return value == true || value == 1 || value == '1';
+  }
+
+  static List<String> _readPermissions(dynamic value) {
+    if (value is List) {
+      return value.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+    }
+    final text = value?.toString() ?? '';
+    if (text.isEmpty) return const [];
+    return text.split(',').where((e) => e.trim().isNotEmpty).toList();
   }
 }

@@ -16,9 +16,34 @@ class AppPropertyArgs {
 class AddExpenseArgs {
   final String propertyCardId;
   final AddExpenseMode mode;
+  final String? propertyOwnerId;
+  final bool isSharedWithMe;
+  final String? propertyName;
+
   AddExpenseArgs({
     required this.propertyCardId,
     this.mode = AddExpenseMode.fromCard,
+    this.propertyOwnerId,
+    this.isSharedWithMe = false,
+    this.propertyName,
+  });
+}
+
+class SummaryArgs {
+  final int propertyCardId;
+  final String? propertyOwnerId;
+  final bool isSharedWithMe;
+  final double monthlyBudget;
+  final bool canAddExpense;
+  final String? propertyName;
+
+  SummaryArgs({
+    required this.propertyCardId,
+    this.propertyOwnerId,
+    this.isSharedWithMe = false,
+    this.monthlyBudget = 0,
+    this.canAddExpense = true,
+    this.propertyName,
   });
 }
 
@@ -32,4 +57,9 @@ class PdfPreviewArgs {
   final String propertyName;
   FutureOr<Uint8List> Function(PdfPageFormat) build;
   PdfPreviewArgs({required this.build, required this.propertyName});
+}
+
+class SharePropertyArgs {
+  final DashboardCardEntity cardEntity;
+  SharePropertyArgs({required this.cardEntity});
 }

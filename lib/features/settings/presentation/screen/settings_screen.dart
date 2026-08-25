@@ -1,4 +1,5 @@
 import 'package:expense_app/core/constant/const_text/settings_screen_text.dart';
+import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/auth/domain/usescases/auth_usecases.dart';
@@ -8,6 +9,7 @@ import 'package:expense_app/features/settings/presentation/bloc/settings_events.
 import 'package:expense_app/features/settings/presentation/bloc/settings_states.dart';
 import 'package:expense_app/features/settings/presentation/widgets/export_card.dart';
 import 'package:expense_app/features/sync_data/domain/usescases/sync_data_use_cases.dart';
+import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:flutter/material.dart';
@@ -30,27 +32,18 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool value = false;
-  bool isLoading = false;
-  SettingsEntityModel entityModel = SettingsEntityModel();
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<SettingsBloc>()..add(OnSettingsEvent()),
-      child: BlocConsumer<SettingsBloc, SettingsStates>(
-        listener: (context, state) {
-          if (state is SettingsDataStates) {
-            if (state.status == Status.loading) {
-              isLoading = true;
-            }
-            if (state.status == Status.success) {
-              isLoading = false;
-              entityModel = state.entityModel;
-            }
-          }
-        },
+      child: BlocBuilder<SettingsBloc, SettingsStates>(
         builder: (context, state) {
+          final isLoading =
+              state is SettingsDataStates && state.status == Status.loading;
+          final entityModel = state is SettingsDataStates
+              ? state.entityModel
+              : SettingsEntityModel();
+
           return WillPopScope(
             onWillPop: () async {
               context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
@@ -62,40 +55,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leadingOnTap: () {
                   context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
                 },
-
                 title: SettingsScreenText.appBarText,
               ),
-              body: ListView(
-                padding: .symmetric(horizontal: 20.w),
-                children: [
-                  SizedBox(height: 24.h),
-
-                  /// Min Profile Info Card
-                  MinProfileInfoCard(entityModel: entityModel),
-                  SizedBox(height: 24.h),
-                  AccountSettings(entityModel: entityModel),
-                  SizedBox(height: 24.h),
-
-                  /// Export to pdf Print Card
-                  ExportCard(),
-                  SizedBox(height: 40.h),
-                  PrimaryButton(
-                    text: SettingsScreenText.logout,
-                    onTap: () {
-                      context.showConfirmationDialog(
-                        message: 'Are you sure you want to logout?',
-                        onYesPressed: () async {
-                          /// Stop background sync before clearing session email
-                          sl<SyncDataUseCases>().stopSync();
+              body: isLoading
+                  ? AppShimmer.settings()
+                  : ListView(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      children: [
+                        SizedBox(height: 24.h),
+                        MinProfileInfoCard(entityModel: entityModel),
+                        SizedBox(height: 24.h),
+                        AccountSettings(entityModel: entityModel),
+                        SizedBox(height: 24.h),
+                        ExportCard(),
+                        SizedBox(height: 40.h),
+                        PrimaryButton(
+                          text: SettingsScreenText.logout,
+                          onTap: () {
+                            context.showConfirmationDialog(
+                              message: 'Are you sure you want to logout?',
+                              onYesPressed: () async {
+                                sl<SyncDataUseCases>().stopSync();
                           await sl<AuthUseCases>().logoutCall();
                           if (!context.mounted) return;
-                          context.go(RoutesName.login);
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
+                          /// Logout → login: no auto fingerprint prompt
+                          context.go(RoutesName.login, extra: true);
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
             ),
           );
         },

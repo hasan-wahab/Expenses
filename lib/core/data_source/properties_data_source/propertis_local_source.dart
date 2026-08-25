@@ -7,6 +7,9 @@ import '../../../features/dashboard/data/models/property_card_model.dart';
 class PropertiesLocalSource {
   SqfLiteCurd sqfLiteCurd;
   PropertiesLocalSource({required this.sqfLiteCurd});
+
+  String _ownerKey(PropertyModel model) => model.ownerId ?? '';
+
   Future addNewProperty({
     required PropertyModel model,
     required String currentUserEmail,
@@ -15,6 +18,21 @@ class PropertiesLocalSource {
       await sqfLiteCurd.save(
         tableKey: TableKeys.propertyCardTable,
         value: {'email': currentUserEmail, ...model.toMap()},
+      );
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future upsertProperty({
+    required PropertyModel model,
+    required String currentUserEmail,
+  }) async {
+    try {
+      await sqfLiteCurd.save(
+        tableKey: TableKeys.propertyCardTable,
+        value: {'email': currentUserEmail, ...model.toMap()},
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } on Exception {
       rethrow;
@@ -50,11 +68,10 @@ class PropertiesLocalSource {
         tableKey: TableKeys.propertyCardTable,
         value: {
           'email': currentUserEmail,
-          'cardId': model.cardId,
           ...model.toMap(),
         },
-        where: 'email = ? AND cardId = ?',
-        whereArgs: [currentUserEmail, model.cardId],
+        where: 'email = ? AND cardId = ? AND IFNULL(ownerId, "") = ?',
+        whereArgs: [currentUserEmail, model.cardId, _ownerKey(model)],
       );
     } on Exception {
       rethrow;
@@ -64,21 +81,24 @@ class PropertiesLocalSource {
   Future deleteProperty({
     required int cardId,
     required String currentUserEmail,
+    String? ownerId,
+    bool deleteLocalExpenses = true,
   }) async {
     try {
-      /// Delete property
       await sqfLiteCurd.delete(
         tableKey: TableKeys.propertyCardTable,
-        where: 'email = ? AND cardId = ?',
-        whereArgs: [currentUserEmail, cardId],
+            where: 'email = ? AND cardId = ? AND IFNULL(ownerId, "") = ?',
+        whereArgs: [currentUserEmail, cardId, ownerId ?? ''],
       );
 
-      /// Delete expenses of property
-      await sqfLiteCurd.delete(
-        tableKey: TableKeys.expensesTable,
-        whereArgs: [cardId, currentUserEmail],
-        where: 'propertyCardId = ? AND email = ?',
-      );
+      if (deleteLocalExpenses) {
+        await sqfLiteCurd.delete(
+          tableKey: TableKeys.expensesTable,
+          where:
+              'email = ? AND propertyCardId = ? AND IFNULL(propertyOwnerId, "") = ?',
+          whereArgs: [currentUserEmail, cardId, ownerId ?? ''],
+        );
+      }
     } on Exception {
       rethrow;
     }

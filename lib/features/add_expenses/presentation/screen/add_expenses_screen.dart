@@ -1,3 +1,4 @@
+import 'package:expense_app/core/constant/app_currency.dart';
 import 'package:expense_app/core/constant/const_text/add_expese_text.dart';
 import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
@@ -9,6 +10,7 @@ import 'package:expense_app/features/add_expenses/presentation/widgets/add_expen
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_bloc.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_events.dart';
+import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/app_t_field.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
@@ -23,16 +25,24 @@ import '../../../../core/extensions/text_controller_extension.dart';
 import '../bloc/add_expenses_event.dart';
 import '../bloc/add_expenses_states.dart';
 import '../widgets/date_selection.dart';
+import '../widgets/no_property_for_expense.dart';
 import '../widgets/property_card_dropdown.dart';
 import '../widgets/upload_receipt_image.dart';
 
 class AddExpensesScreen extends StatefulWidget {
   AddExpenseMode mode;
   String propertyCardId;
+  final String? propertyOwnerId;
+  final bool isSharedWithMe;
+  final String? propertyName;
+
   AddExpensesScreen({
     super.key,
     this.propertyCardId = '1',
     this.mode = AddExpenseMode.fromCard,
+    this.propertyOwnerId,
+    this.isSharedWithMe = false,
+    this.propertyName,
   });
 
   @override
@@ -48,6 +58,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
   String selectedCategory = 'Other';
   TextEditingController notesController = TextEditingController();
   XFile? receiptImage;
+  bool _propertiesLoaded = false;
 
   void _resetForm() {
     [controller, notesController].resetAll();
@@ -75,18 +86,58 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
       child: BlocConsumer<AddExpensesBloc, AddExpensesStates>(
         listener: (context, state) {
           if (widget.mode == AddExpenseMode.fromCard) {
-            selectedCard.value = widget.propertyCardId;
+            selectedCard.value =
+                '${widget.propertyOwnerId ?? ''}_${widget.propertyCardId}';
           }
           if (state is GetPropertyCardState) {
-            if (state.status == Status.loading) {
-              context.showCustomLoading();
-            }
             if (state.status == Status.success) {
-              context.pop();
               dashboardCardList = state.propertyCardList ?? [];
+              _propertiesLoaded = true;
+              if (widget.mode == AddExpenseMode.fromCard &&
+                  widget.propertyCardId.isNotEmpty &&
+                  !dashboardCardList.any(
+                    (e) =>
+                        e.listKey ==
+                        '${widget.propertyOwnerId ?? ''}_${widget.propertyCardId}',
+                  )) {
+                dashboardCardList = [
+                  DashboardCardEntity(
+                    cardId: int.tryParse(widget.propertyCardId) ?? 0,
+                    propertyName: widget.propertyName ?? 'Shared property',
+                    propertyLocation: '',
+                    categoryType: '',
+                    imageUrl: '',
+                    createAt: '',
+                    ownerId: widget.propertyOwnerId,
+                    isSharedWithMe: widget.isSharedWithMe,
+                  ),
+                  ...dashboardCardList,
+                ];
+              }
+              if (dashboardCardList.isNotEmpty &&
+                  widget.mode == AddExpenseMode.fromNavBar &&
+                  selectedCard.value == null &&
+                  dashboardCardList.length == 1) {
+                selectedCard.value = dashboardCardList.first.listKey;
+              }
             }
             if (state.status == Status.error) {
-              context.pop();
+              _propertiesLoaded = true;
+              if (widget.mode == AddExpenseMode.fromCard &&
+                  widget.propertyCardId.isNotEmpty) {
+                dashboardCardList = [
+                  DashboardCardEntity(
+                    cardId: int.tryParse(widget.propertyCardId) ?? 0,
+                    propertyName: widget.propertyName ?? 'Shared property',
+                    propertyLocation: '',
+                    categoryType: '',
+                    imageUrl: '',
+                    createAt: '',
+                    ownerId: widget.propertyOwnerId,
+                    isSharedWithMe: widget.isSharedWithMe,
+                  ),
+                ];
+              }
               context.showSnackBar(state.message!, isError: true);
             }
           }
@@ -94,24 +145,15 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
             categoryList = state.categoryList ?? [];
           }
           if (state is PickReceiptImageState) {
-            if (state.status == Status.loading) {
-              context.showCustomLoading();
-            }
             if (state.status == Status.success) {
-              context.pop();
               receiptImage = state.imagePath;
             }
             if (state.status == Status.error) {
-              context.pop();
               context.showSnackBar(state.message!, isError: true);
             }
           }
           if (state is SaveExpensesState) {
-            if (state.status == Status.loading) {
-              context.showCustomLoading();
-            }
             if (state.status == Status.success) {
-              Navigator.of(context, rootNavigator: true).pop();
               _resetForm();
               setState(() {});
               context.showSnackBar('Expense Added Successfully');
@@ -120,7 +162,6 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
               }
             }
             if (state.status == Status.error) {
-              Navigator.of(context, rootNavigator: true).pop();
               context.showSnackBar(state.message!, isError: true);
             }
           }
@@ -142,6 +183,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
               backgroundColor: AppColors.bgColor,
               appBar: CustomAppBar(
                 title: AddExpenseText.addExpenseText,
+                isLeading: true,
                 leadingOnTap: () {
                   if (widget.mode == AddExpenseMode.fromNavBar) {
                     context.read<NaveBarBloc>().add(
@@ -154,119 +196,153 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
               ),
               body: SafeArea(
                 top: false,
-                child: ListView(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  children: [
-                    SizedBox(height: 24.h),
-                    PropertyCardDropdown(
-                      propertyCardId: selectedCard.value,
-                      onSelected: (String? value) {
-                        selectedCard.value = value;
-                        setState(() {});
-                      },
-                      dashboardCardList: dashboardCardList,
-                    ),
-                    SizedBox(height: 24.h),
-
-                    /// Enter Amount Field
-                    AppTField(
-                      keyboardType: TextInputType.number,
-                      controller: controller,
-                      hintText: AddExpenseText.enterAmount,
-                      labelText: AddExpenseText.amount,
-                      startIcon: Icons.monetization_on,
-                    ),
-                    SizedBox(height: 24.h),
-
-                    /// Chose Category
-                    AddExpenseCategory(
-                      categoryName: [
-                        'Gas',
-                        'Electric',
-                        'Water',
-                        'Home',
-                        'Food',
-                        ...categoryList,
-                        'Other',
-                        'Add new',
-                      ],
-                    ),
-                    SizedBox(height: 24.h),
-
-                    /// Date Field
-                    DateSelection(
-                      selectedDate: selectedDate.toDisplayDate(),
-                      onTap: () async {
-                        selectedDate =
-                            (await context.showAppDatePicker()) ??
-                            DateTime.now();
-                        setState(() {});
-                      },
-                    ),
-                    SizedBox(height: 24.h),
-
-                    /// Upload Receipt Image --> Optional (before notes)
-                    UploadReceiptImage(
-                      imagePath: receiptImage,
-                      onTap: () async {
-                        final source = await context.showImageSourcePicker();
-                        if (source == null || !context.mounted) return;
-                        context.read<AddExpensesBloc>().add(
-                          OnPickReceiptImageEvent(imageSource: source),
-                        );
-                      },
-                    ),
-                    SizedBox(height: 24.h),
-
-                    /// Notes Field --> Optional
-                    AppTField(
-                      controller: notesController,
-                      isExtended: true,
-                      hintText: AddExpenseText.addHere,
-                      labelText: AddExpenseText.notes,
-                    ),
-                    SizedBox(height: 24.h),
-
-                    /// Save Expense Button
-                    PrimaryButton(
-                      text: AddExpenseText.saveExpense,
-                      onTap: () async {
-                        if (widget.mode == AddExpenseMode.fromNavBar &&
-                            selectedCard.value == null) {
-                          context.showSnackBar(
-                            'Please select property',
-                            isError: true,
+                child: !_propertiesLoaded ||
+                        (state is SaveExpensesState &&
+                            state.status == Status.loading) ||
+                        (state is PickReceiptImageState &&
+                            state.status == Status.loading)
+                    ? AppShimmer.form()
+                    : dashboardCardList.isEmpty
+                    ? NoPropertyForExpense(
+                        onPropertyAdded: () {
+                          context.read<AddExpensesBloc>().add(
+                            GetPropertyCardEvent(),
                           );
-                        } else {
-                          if (controller.text.isNotEmpty) {
-                            ExpenseEntity model = ExpenseEntity(
-                              id: DateTime.now().microsecondsSinceEpoch,
-                              createAt: DateTime.now().toString(),
-                              syncStatus: SyncStatus.pending.toString(),
-                              categoryType: selectedCategory,
-                              date: selectedDate.toDisplayDate(),
-                              note: notesController.text,
-                              receiptImage: receiptImage?.path ?? '',
-                              amount: double.parse(controller.text),
-                              propertyCardId: int.parse(selectedCard.value),
-                              title: selectedCategory,
-                              isDeleted: 0,
-                            );
-                            context.read<AddExpensesBloc>().add(
-                              SaveExpensesEvent(expenseEntity: model),
-                            );
-                          } else {
-                            context.showSnackBar(
-                              'Please enter amount',
-                              isError: true,
-                            );
-                          }
-                        }
-                      },
-                    ),
-                    SizedBox(height: 30.h),
-                  ],
-                ),
+                        },
+                      )
+                    : ListView(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        children: [
+                          SizedBox(height: 24.h),
+                          PropertyCardDropdown(
+                            propertyCardId: selectedCard.value,
+                            onSelected: (String? value) {
+                              selectedCard.value = value;
+                              setState(() {});
+                            },
+                            dashboardCardList: dashboardCardList,
+                          ),
+                          SizedBox(height: 24.h),
+
+                          /// Enter Amount Field
+                          AppTField(
+                            keyboardType: TextInputType.number,
+                            controller: controller,
+                            hintText: AddExpenseText.enterAmount,
+                            labelText: AddExpenseText.amount,
+                            startText: AppCurrency.symbol,
+                          ),
+                          SizedBox(height: 24.h),
+
+                          /// Chose Category
+                          AddExpenseCategory(
+                            categoryName: [
+                              'Gas',
+                              'Electric',
+                              'Water',
+                              'Home',
+                              'Food',
+                              ...categoryList,
+                              'Other',
+                              'Add new',
+                            ],
+                          ),
+                          SizedBox(height: 24.h),
+
+                          /// Date Field
+                          DateSelection(
+                            selectedDate: selectedDate.toDisplayDate(),
+                            onTap: () async {
+                              selectedDate =
+                                  (await context.showAppDatePicker()) ??
+                                  DateTime.now();
+                              setState(() {});
+                            },
+                          ),
+                          SizedBox(height: 24.h),
+
+                          /// Upload Receipt Image --> Optional (before notes)
+                          UploadReceiptImage(
+                            imagePath: receiptImage,
+                            onTap: () async {
+                              final source =
+                                  await context.showImageSourcePicker();
+                              if (source == null || !context.mounted) return;
+                              context.read<AddExpensesBloc>().add(
+                                OnPickReceiptImageEvent(imageSource: source),
+                              );
+                            },
+                          ),
+                          SizedBox(height: 24.h),
+
+                          /// Notes Field --> Optional
+                          AppTField(
+                            controller: notesController,
+                            isExtended: true,
+                            hintText: AddExpenseText.addHere,
+                            labelText: AddExpenseText.notes,
+                          ),
+                          SizedBox(height: 24.h),
+
+                          /// Save Expense Button
+                          PrimaryButton(
+                            text: AddExpenseText.saveExpense,
+                            onTap: () async {
+                              if (widget.mode == AddExpenseMode.fromNavBar &&
+                                  selectedCard.value == null) {
+                                context.showSnackBar(
+                                  'Please select property',
+                                  isError: true,
+                                );
+                              } else {
+                                if (controller.text.isNotEmpty) {
+                                  final selected = dashboardCardList
+                                      .where(
+                                        (e) => e.listKey == selectedCard.value,
+                                      )
+                                      .toList();
+                                  final selectedCardEntity =
+                                      selected.isEmpty ? null : selected.first;
+                                  final cardId =
+                                      selectedCardEntity?.cardId ??
+                                      int.tryParse(widget.propertyCardId) ??
+                                      0;
+                                  ExpenseEntity model = ExpenseEntity(
+                                    id: DateTime.now().microsecondsSinceEpoch,
+                                    createAt: DateTime.now().toString(),
+                                    syncStatus: SyncStatus.pending.toString(),
+                                    categoryType: selectedCategory,
+                                    date: selectedDate.toDisplayDate(),
+                                    note: notesController.text,
+                                    receiptImage: receiptImage?.path ?? '',
+                                    amount: double.parse(controller.text),
+                                    propertyCardId: cardId,
+                                    title: selectedCategory,
+                                    isDeleted: 0,
+                                  );
+                                  context.read<AddExpensesBloc>().add(
+                                    SaveExpensesEvent(
+                                      expenseEntity: model,
+                                      propertyOwnerUid:
+                                          selectedCardEntity?.ownerId ??
+                                          widget.propertyOwnerId,
+                                      isSharedWithMe:
+                                          selectedCardEntity?.isSharedWithMe ??
+                                          widget.isSharedWithMe,
+                                    ),
+                                  );
+                                } else {
+                                  context.showSnackBar(
+                                    'Please enter amount',
+                                    isError: true,
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                          SizedBox(height: 30.h),
+                        ],
+                      ),
               ),
             ),
           );

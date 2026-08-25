@@ -12,6 +12,8 @@ class AppTField extends StatelessWidget {
   final String? labelText;
   final TextEditingController? controller;
   final IconData? startIcon;
+  /// e.g. "PKR" instead of dollar icon
+  final String? startText;
   final IconData? endIcon;
   final VoidCallback? endIconOnTap;
   final String? Function(String?)? validator;
@@ -19,7 +21,7 @@ class AppTField extends StatelessWidget {
   bool isExtended;
   bool isObscure;
   TextInputType? keyboardType;
-  final String? Function(String)? onChanged;
+  final ValueChanged<String>? onChanged;
   final bool enabled;
 
   AppTField({
@@ -28,6 +30,7 @@ class AppTField extends StatelessWidget {
     this.labelText,
     this.controller,
     this.startIcon,
+    this.startText,
     this.endIcon,
     this.validator,
     this.isExtended = false,
@@ -39,11 +42,34 @@ class AppTField extends StatelessWidget {
     this.enabled = true,
   });
 
+  Widget? get _prefix {
+    if (startText != null && startText!.isNotEmpty) {
+      return Padding(
+        padding: EdgeInsets.only(left: 16.w, right: 4.w),
+        child: Text(
+          startText!,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
+            fontSize: 14.sp,
+          ),
+        ),
+      );
+    }
+    if (startIcon != null) {
+      return Padding(
+        padding: EdgeInsets.only(left: 16.w),
+        child: Icon(startIcon),
+      );
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       spacing: 5.h,
-      crossAxisAlignment: .start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         labelText != null
             ? ExtraSmallText(text: labelText!.toTitleCase())
@@ -59,8 +85,8 @@ class AppTField extends StatelessWidget {
               keyboardType: keyboardType,
               obscureText: isObscure,
               padding: isExtended
-                  ? .only(left: 10.w, top: 10.h)
-                  : .only(left: 10.w),
+                  ? EdgeInsets.only(left: 10.w, top: 10.h)
+                  : EdgeInsets.only(left: 10.w),
               suffix: endIcon != null
                   ? InkWell(
                       onTap: endIconOnTap,
@@ -70,24 +96,15 @@ class AppTField extends StatelessWidget {
                       ),
                     )
                   : null,
-              prefix: startIcon != null
-                  ? Padding(
-                      padding: EdgeInsets.only(left: 16.w),
-                      child: Icon(startIcon),
-                    )
-                  : null,
+              prefix: _prefix,
               controller: controller,
-
               placeholder: hintText,
-
               textAlignVertical: isExtended
                   ? TextAlignVertical.top
                   : TextAlignVertical.center,
-              textAlign: .left,
+              textAlign: TextAlign.left,
               decoration: BoxDecoration(
-                //  color: AppColors.bgColor,
-                borderRadius: .circular(12.r),
-                //  border: Border.all(color: AppColors.primary),
+                borderRadius: BorderRadius.circular(12.r),
               ),
             ),
           ),

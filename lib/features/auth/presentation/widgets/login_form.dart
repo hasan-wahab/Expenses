@@ -1,13 +1,9 @@
-import 'package:expense_app/core/router/routes_name.dart';
-import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_events.dart';
-import 'package:expense_app/features/auth/presentation/bloc/auth_states.dart';
 import 'package:expense_app/features/auth/presentation/widgets/devider_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/const_text/auth_text.dart';
 import '../../../../core/constant/themes/themes/colors.dart';
@@ -15,7 +11,6 @@ import '../../../../core/extensions/string_extension.dart';
 import '../../../widgets/app_t_field.dart';
 import '../../../widgets/extra_small_text.dart';
 import '../../../widgets/priamary_butn.dart';
-import '../../../widgets/small_text.dart';
 
 class LoginForm extends StatelessWidget {
   final TextEditingController emailCtrl;
@@ -78,7 +73,6 @@ class LoginForm extends StatelessWidget {
             children: [
               InkWell(
                 /// Here use can add the event for login with finger print
-                // onTap: () =>context.push(RoutesName.settingsScreen),
                 onTap: () =>
                     context.read<AuthBloc>().add(LoginWithFingerPrintEvent()),
                 child: Column(

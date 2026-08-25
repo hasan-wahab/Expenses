@@ -26,57 +26,63 @@ class ExpenseLocalSource {
         value: {'email': currentUserEmail, ...model.toMap()},
       );
 
-      // Sync/reinstall pull: property already has correct monthlyExpenses from Firebase
       if (!updateMonthlyTotal) return;
 
-      /// Get property list
       List<PropertyModel> propertyModel = await propertiesLocalSource
           .getPropertiesList(currentUserEmail: currentUserEmail);
 
-      /// Update property list with new amount and progress
-      /// First we need to get all property
+      final expenseOwnerKey = model.propertyOwnerId ?? '';
       for (var element in propertyModel) {
-        /// Then we need to get all expenses and check if the property id is the same
-        if (element.cardId == model.propertyCardId) {
-          /// Then we update the property with new amount and progress
-          final double newAmount =
-              (element.monthlyExpenses ?? 0) + (model.amount ?? 0);
-          final double percent = (newAmount / element.monthlyBudget) * 100;
-          await propertiesLocalSource.updateProperty(
-            model: element.copyWith(
-              monthlyExpenses: newAmount,
-              syncStatus: SyncStatus.pending,
-              updateAt: DateTime.now().toString(),
-              progress: percent,
-            ),
-            currentUserEmail: currentUserEmail,
-          );
-        }
+        final propertyOwnerKey = element.ownerId ?? '';
+        if (element.cardId != model.propertyCardId) continue;
+        if (propertyOwnerKey != expenseOwnerKey) continue;
+
+        final double newAmount =
+            (element.monthlyExpenses ?? 0) + (model.amount ?? 0);
+        final double percent = element.monthlyBudget == 0
+            ? 0
+            : (newAmount / element.monthlyBudget) * 100;
+        await propertiesLocalSource.updateProperty(
+          model: element.copyWith(
+            monthlyExpenses: newAmount,
+            syncStatus: element.isSharedWithMe
+                ? element.syncStatus
+                : SyncStatus.pending,
+            updateAt: DateTime.now().toString(),
+            progress: percent,
+          ),
+          currentUserEmail: currentUserEmail,
+        );
       }
     } on Exception {
       rethrow;
     }
   }
 
-  Future<List<ExpenseModel>> getAllExpenses({String? propertyCardId}) async {
+  Future<List<ExpenseModel>> getAllExpenses({
+    String? propertyCardId,
+    String? propertyOwnerId,
+  }) async {
     try {
       String currentUserEmail = await getCurrentUserEmail();
 
       String where;
-      List<String>? whereArgs;
+      List<Object> whereArgs;
       if (propertyCardId == null) {
-        /// All Card Expenses
         where = 'email = ?';
         whereArgs = [currentUserEmail];
+      } else if (propertyOwnerId != null) {
+        where =
+            'email = ? AND propertyCardId = ? AND IFNULL(propertyOwnerId, "") = ?';
+        whereArgs = [currentUserEmail, propertyCardId, propertyOwnerId];
       } else {
-        /// Just One Card Expenses
         where = 'email = ? AND propertyCardId = ?';
         whereArgs = [currentUserEmail, propertyCardId];
       }
       final result = await sqfLiteCurd.get(
         tableKey: TableKeys.expensesTable,
         where: where,
-        whereArgs: whereArgs,
+        whereArgs: whereArgs.map((e) => e.toString()).toList(),
       );
       if (result.isEmpty) return [];
       return result.map((e) => ExpenseModel.fromMap(e)).toList();

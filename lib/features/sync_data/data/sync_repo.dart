@@ -1,12 +1,8 @@
 import 'dart:async';
-import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:expense_app/core/constant/app_key/table_keys.dart';
 import 'package:expense_app/core/data_source/expense_data_source/expense_remote_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/properties_remote_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/propertis_local_source.dart';
-import 'package:expense_app/core/storage/sqflite_curd.dart';
 import 'package:expense_app/core/utils/internet_utils.dart';
 import 'package:expense_app/features/add_expenses/data/models/expense_model.dart';
 
@@ -56,6 +52,7 @@ class SyncRepo {
         }
       } else {
         for (var item in list) {
+          if (item.isSharedWithMe) continue;
           if (item.isDeleted == true) {
             await remoteSource.deletePropertyById(
               cardId: item.cardId,
@@ -90,37 +87,59 @@ class SyncRepo {
     }
     try {
       final currentUserEmail = await localSource.getCurrentUserEmail();
-      /// Get all expenses from local source
-      List<PropertyModel> properties = await localSource.getPropertiesList(
-        currentUserEmail: currentUserEmail,
-      );
-      if (properties.isEmpty) return;
-      List<ExpenseModel> expensesList = await expenseLocalSource
-          .getAllExpenses();
-      if (expensesList.isEmpty) {
-        List<ExpenseModel> allRemoteExpenses = [];
+      var expensesList = await expenseLocalSource.getAllExpenses();
 
-        for (var property in properties) {
+      for (final item in expensesList) {
+        if (item.syncStatus != SyncStatus.pending.toString()) continue;
+
+        if (item.isSharedWithMe) {
+          final allowed = await remoteSource.canMemberAddExpense(
+            ownerUid: item.propertyOwnerId ?? '',
+            cardId: item.propertyCardId ?? 0,
+          );
+          if (!allowed) continue;
+          await expenseRemoteSource.addNewExpense(
+            model: item.copyWith(syncStatus: SyncStatus.synced.toString()),
+            propertyOwnerUid: item.propertyOwnerId,
+          );
+        } else {
+          await expenseRemoteSource.addNewExpense(
+            model: item.copyWith(syncStatus: SyncStatus.synced.toString()),
+          );
+        }
+
+        await expenseLocalSource.updateExpense(
+          model: item.copyWith(syncStatus: SyncStatus.synced.toString()),
+          currentUserEmail: currentUserEmail,
+        );
+      }
+
+      List<PropertyModel> ownedProperties =
+          (await localSource.getPropertiesList(
+            currentUserEmail: currentUserEmail,
+          )).where((e) => !e.isSharedWithMe).toList();
+      if (ownedProperties.isEmpty) return;
+
+      final ownedLocal = (await expenseLocalSource.getAllExpenses())
+          .where((e) => !e.isSharedWithMe)
+          .toList();
+      if (ownedLocal.isEmpty) {
+        List<ExpenseModel> allRemoteExpenses = [];
+        for (var property in ownedProperties) {
           expensesList = await expenseRemoteSource.getAllExpenses(
             propertyCardId: property.cardId.toString(),
           );
           allRemoteExpenses.addAll(expensesList);
-          print('all Remote data $allRemoteExpenses');
         }
         for (var item in allRemoteExpenses) {
           await expenseLocalSource.addNewExpense(
-            model: item.copyWith(syncStatus: SyncStatus.synced.toString()),
+            model: item.copyWith(
+              syncStatus: SyncStatus.synced.toString(),
+              propertyOwnerId: '',
+              isSharedWithMe: false,
+            ),
             updateMonthlyTotal: false,
           );
-        }
-      }
-      expensesList = await expenseLocalSource.getAllExpenses();
-      for (var item in expensesList) {
-        if (item.syncStatus == SyncStatus.pending.toString()) {
-          await expenseRemoteSource.addNewExpense(
-            model: item.copyWith(syncStatus: SyncStatus.synced.toString()),
-          );
-          expensesList = await expenseLocalSource.getAllExpenses();
         }
       }
     } catch (e) {

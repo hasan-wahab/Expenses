@@ -2,7 +2,7 @@ class AuthText {
   AuthText._();
 
   /// Login Text
-  static const String appBarTitle = 'Home Expense Tracker';
+  static const String appBarTitle = 'Expenseo';
   static const String welcomeText = 'Welcome Back !';
   static const String pleaseLoginText =
       'Please login to continue managing your property expenses';
@@ -14,9 +14,9 @@ class AuthText {
   static const String signUp = "Sign Up";
 
   /// Sign Up Text
-  static const String joinText = 'Join Zenith Finance';
+  static const String joinText = 'Join Expenseo';
   static const String joinSmallText =
-      'Join us to manage your property expenses\nefficiently.';
+      'Create your Expenseo account to manage\nproperty expenses efficiently.';
   static const String fullName = 'full name';
   static const String email = 'email';
   static const String password = 'password';
@@ -25,4 +25,11 @@ class AuthText {
   static const String termsAndCondition = ' Terms & Conditions';
   static const String and = ' and ';
   static const String privacy = 'Privacy Policy';
+
+  /// Email verification
+  static const String verifyEmailTitle = 'Verify Email';
+  static const String verifyEmailMessage =
+      'We sent a verification link to your email. Open it, then tap Continue.\n\nIf you don’t see it in Inbox, please check your Spam / Junk folder too.';
+  static const String resendEmail = 'Resend Email';
+  static const String continueText = 'Continue';
 }

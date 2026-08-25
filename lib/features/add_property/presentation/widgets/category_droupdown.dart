@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constant/themes/themes/colors.dart';
+import '../../../../core/extensions/context_extension.dart';
 
 class CategoryDropdown extends StatelessWidget {
   final Function(String)? onChange;
@@ -36,19 +37,49 @@ class CategoryDropdown extends StatelessWidget {
               ),
             ),
             isExpanded: true,
-            hint: Text(initialValue != '' ? initialValue : 'Select Item'),
+            hint: Text(initialValue != '' ? initialValue : 'Select Category'),
             valueListenable: selectedItem,
             items: [
-              DropdownItem(value: 'Home', child: Text('Home')),
-              DropdownItem(value: 'Business', child: Text('Business')),
-              DropdownItem(value: 'Apartment', child: Text('Apartment')),
-              DropdownItem(value: 'Shop', child: Text('Shop')),
-              DropdownItem(value: 'Office', child: Text('Office')),
-              DropdownItem(value: 'Warehouse', child: Text('Warehouse')),
-              DropdownItem(value: 'Villa', child: Text('Villa')),
-              DropdownItem(value: 'Farmhouse', child: Text('Farmhouse')),
-              DropdownItem(value: 'Plot', child: Text('Plot')),
-              DropdownItem(value: 'Other', child: Text('Other')),
+              DropdownItem(
+                value: 'Home',
+                child: Text('Home', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Business',
+                child: Text('Business', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Apartment',
+                child: Text('Apartment', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Shop',
+                child: Text('Shop', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Office',
+                child: Text('Office', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Warehouse',
+                child: Text('Warehouse', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Villa',
+                child: Text('Villa', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Farmhouse',
+                child: Text('Farmhouse', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Plot',
+                child: Text('Plot', style: context.smallText),
+              ),
+              DropdownItem(
+                value: 'Other',
+                child: Text('Other', style: context.smallText),
+              ),
             ],
             onChanged: (value) {
               selectedItem?.value = value;

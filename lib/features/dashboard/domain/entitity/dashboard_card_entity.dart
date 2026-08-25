@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:expense_app/core/constant/enums.dart';
 
 class DashboardCardEntity {
@@ -15,6 +13,10 @@ class DashboardCardEntity {
   final String categoryType;
   final SyncStatus? syncStatus;
   final bool isDeleted;
+  final String? ownerId;
+  final String? ownerEmail;
+  final bool isSharedWithMe;
+  final List<String> myPermissions;
 
   DashboardCardEntity({
     required this.cardId,
@@ -29,7 +31,19 @@ class DashboardCardEntity {
     this.updateAt,
     this.syncStatus = SyncStatus.pending,
     this.isDeleted = false,
+    this.ownerId,
+    this.ownerEmail,
+    this.isSharedWithMe = false,
+    this.myPermissions = const [],
   });
+
+  bool get isOwner => !isSharedWithMe;
+
+  /// Unique among owned + shared cards (same cardId can exist twice).
+  String get listKey => '${ownerId ?? ''}_$cardId';
+
+  bool hasPermission(String permission) =>
+      isOwner || myPermissions.contains(permission);
 
   DashboardCardEntity copyWith({
     int? cardId,
@@ -44,6 +58,10 @@ class DashboardCardEntity {
     String? categoryType,
     SyncStatus? syncStatus,
     bool? isDeleted,
+    String? ownerId,
+    String? ownerEmail,
+    bool? isSharedWithMe,
+    List<String>? myPermissions,
   }) {
     return DashboardCardEntity(
       cardId: cardId ?? this.cardId,
@@ -58,6 +76,10 @@ class DashboardCardEntity {
       categoryType: categoryType ?? this.categoryType,
       syncStatus: syncStatus ?? this.syncStatus,
       isDeleted: isDeleted ?? this.isDeleted,
+      ownerId: ownerId ?? this.ownerId,
+      ownerEmail: ownerEmail ?? this.ownerEmail,
+      isSharedWithMe: isSharedWithMe ?? this.isSharedWithMe,
+      myPermissions: myPermissions ?? this.myPermissions,
     );
   }
 }

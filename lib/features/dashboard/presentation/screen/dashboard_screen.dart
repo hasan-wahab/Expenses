@@ -5,6 +5,8 @@ import 'package:expense_app/core/router/routes_name.dart';
 
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
+import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_bloc.dart';
+import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,6 +15,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constant/enums.dart';
 import '../../../../core/constant/wrapers.dart';
 import '../../../../core/di/get_it.dart';
+import '../../../widgets/app_shimmer.dart';
 import '../../../widgets/cusom_appbar.dart';
 import '../../../widgets/no_property_added.dart';
 import '../../domain/entitity/dashboard_card_entity.dart';
@@ -29,17 +32,6 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<DashboardCardEntity> list = [];
 
-  Future<void> _onAddProperty(BuildContext context) async {
-    final result = await context.push(
-      RoutesName.addPropertyScreen,
-      extra: AppPropertyArgs(mode: AddPropertyMode.add),
-    );
-    if (result == true) {
-      if (!context.mounted) return;
-      context.read<DashboardBloc>().add(GetPropertiesEvent());
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -47,31 +39,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: BlocConsumer<DashboardBloc, DashboardStates>(
         listener: (context, state) {
           if (state is GetProperties) {
-            if (state.status == Status.loading) {
-              context.showCustomLoading();
-            }
             if (state.status == Status.success) {
-              context.pop();
               list = state.propertyList;
             }
             if (state.status == Status.error) {
-              context.pop();
+              context.showSnackBar(state.errorMessage, isError: true);
             }
           }
         },
         builder: (context, state) {
+          final loading =
+              state is GetProperties && state.status == Status.loading;
           return Scaffold(
             backgroundColor: AppColors.bgColor,
-            appBar: CustomAppBar(title: DashboardText.appBarText),
-            body: list.isEmpty
-                ? NoPropertyAdded(onAddTap: () => _onAddProperty(context))
+            appBar: CustomAppBar(
+              title: DashboardText.appBarText,
+              isLeading: false,
+            ),
+            body: loading
+                ? AppShimmer.cards()
+                : list.isEmpty
+                ? NoPropertyAdded(
+                    onPropertyAdded: () {
+                      /// Stay on Home and reload property list after save.
+                      context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
+                      context.read<NaveBarBloc>().add(NaveBarRefreshHomeEvent());
+                    },
+                  )
                 : ListView.builder(
                     itemCount: list.length,
                     padding: EdgeInsets.symmetric(horizontal: 20.w),
                     itemBuilder: (context, index) {
+                      final entity = list[index];
                       return Padding(
                         padding: EdgeInsets.only(top: 24.h),
-                        child: HomeCard(entity: list[index]),
+                        child: HomeCard(
+                          key: ValueKey(
+                            '${entity.ownerId ?? 'local'}_${entity.cardId}',
+                          ),
+                          entity: entity,
+                        ),
                       );
                     },
                   ),

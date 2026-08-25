@@ -1,7 +1,7 @@
 class MonthlySummaryText {
   static String get summaryAppBar => 'Summary';
   static String get totalExpense => 'Total Expense';
-  static String get expenseValue => 'Rs. 28,540';
+  static String get expenseValue => 'PKR 28,540';
   static String get percentRed => '+12% vs Apr';
   static String get overview => 'Expense Overview';
   static String get pastFiveMonth => 'Past 5 Months';

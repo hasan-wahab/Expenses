@@ -20,6 +20,7 @@ class CategoryDetailScreen extends StatelessWidget {
       appBar: CustomAppBar(
         title:
             '${expenses.first.categoryType.toString().toTitleCase()} Details',
+        isLeading: true,
       ),
       body: SafeArea(
         top: false,

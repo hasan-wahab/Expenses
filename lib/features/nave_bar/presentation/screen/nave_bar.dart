@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/const_text/dashboard_text.dart';
 import '../../../../core/di/get_it.dart';
+import '../../../../core/extensions/context_extension.dart';
 
 class NaveBar extends StatelessWidget {
   const NaveBar({super.key});
@@ -77,25 +78,35 @@ class NaveBar extends StatelessWidget {
             ),
           ];
 
-          return Scaffold(
-            body: screens.elementAt(state.index),
-            bottomNavigationBar: SafeArea(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w),
-                height: 65.h,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.bgColor,
-                  boxShadow: [
-                    BoxShadow(color: AppColors.primary, offset: Offset(0, -1)),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: navItems
-                      .map((item) => _NavBarItem(item: item))
-                      .toList(),
+          return PopScope(
+            canPop: state.index == 0,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
+            },
+            child: Scaffold(
+              body: screens.elementAt(state.index),
+              bottomNavigationBar: SafeArea(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  height: 65.h,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.bgColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary,
+                        offset: Offset(0, -1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: .center,
+                    mainAxisAlignment: .spaceBetween,
+                    children: navItems
+                        .map((item) => _NavBarItem(item: item))
+                        .toList(),
+                  ),
                 ),
               ),
             ),
@@ -128,9 +139,7 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = item.isSelected
-        ? AppColors.primary
-        : AppColors.iconsBlackColor;
+    final color = item.isSelected ? context.iconAccent : context.iconMuted;
 
     return InkWell(
       onTap: item.onTap,
@@ -143,7 +152,6 @@ class _NavBarItem extends StatelessWidget {
             Icon(
               item.isSelected ? item.activeIcon : item.icon,
               color: color,
-              size: 22.r,
             ),
             SizedBox(height: 2.h),
             ExtraSmallText(

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:expense_app/features/add_expenses/domain/entitity/add_expense_entity_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,9 +24,14 @@ class SummaryBloc extends Bloc<SummaryEvents, SummaryStates> {
 
       SummaryEntityModel summaryEntityModel = await useCases.getSummaryData(
         propertyCardId: event.propertyCardId,
+        propertyOwnerId: event.propertyOwnerId,
+        isSharedWithMe: event.isSharedWithMe,
+        monthlyBudget: event.monthlyBudget,
       );
       List<ExpenseEntity> expenses = await useCases.getAllExpenses(
         propertyCardId: event.propertyCardId,
+        propertyOwnerId: event.propertyOwnerId,
+        isSharedWithMe: event.isSharedWithMe,
       );
       emit(
         GetSummaryDataState(

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_app/core/constant/app_key/firebase_paths.dart';
 
 import '../../../features/add_expenses/data/models/expense_model.dart';
 import '../../constant/app_key/table_keys.dart';
@@ -10,19 +11,58 @@ class ExpenseRemoteSource {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   SqfLiteCurd sqfLiteCurd;
   ExpenseRemoteSource({required this.sqfLiteCurd});
-  Future addNewExpense({required ExpenseModel model}) async {
+
+  Future<String> _currentUserEmail() async {
+    return await sqfLiteCurd
+        .get(tableKey: TableKeys.currentUserEmailTable)
+        .then((value) => value.first['email']);
+  }
+
+  Map<String, dynamic> _expensePayload({
+    required ExpenseModel model,
+    required String propertyOwnerUid,
+    required String createdById,
+  }) {
+    final cardId = model.propertyCardId ?? 0;
+    final map = Map<String, dynamic>.from(model.toMap());
+    map.remove('isSharedWithMe');
+    map.remove('propertyOwnerId');
+    return {
+      ...map,
+      'propertyId': FirebasePaths.propertyId(
+        ownerUid: propertyOwnerUid,
+        cardId: cardId,
+      ),
+      'ownerId': createdById,
+      'createdById': createdById,
+    };
+  }
+
+  Future addNewExpense({
+    required ExpenseModel model,
+    String? propertyOwnerUid,
+  }) async {
     try {
-      String currentUserEmail = await sqfLiteCurd
-          .get(tableKey: TableKeys.currentUserEmailTable)
-          .then((value) => value.first['email']);
-      await firestore
-          .collection('Property')
-          .doc(currentUserEmail)
-          .collection('PropertyList')
-          .doc(model.propertyCardId.toString())
-          .collection('Expenses')
-          .doc(model.id.toString())
-          .set(model.toMap())
+      final currentUid = FirebasePaths.requireUid();
+      final propertyOwner =
+          (propertyOwnerUid != null && propertyOwnerUid.isNotEmpty)
+          ? propertyOwnerUid
+          : currentUid;
+      final localExpenseId = model.id ?? 0;
+      await FirebasePaths.expenseDoc(
+            FirebasePaths.expenseId(
+              ownerUid: currentUid,
+              expenseId: localExpenseId,
+            ),
+          )
+          .set(
+            _expensePayload(
+              model: model,
+              propertyOwnerUid: propertyOwner,
+              createdById: currentUid,
+            ),
+            SetOptions(merge: true),
+          )
           .timeout(Duration(seconds: 15));
     } on FirebaseException catch (e) {
       switch (e.code) {
@@ -47,20 +87,35 @@ class ExpenseRemoteSource {
 
   Future<List<ExpenseModel>> getAllExpenses({
     required String propertyCardId,
+    String? propertyOwnerUid,
   }) async {
     try {
-      String currentUserEmail = await sqfLiteCurd
-          .get(tableKey: TableKeys.currentUserEmailTable)
-          .then((value) => value.first['email']);
-      final result = await firestore
-          .collection('Property')
-          .doc(currentUserEmail)
-          .collection('PropertyList')
-          .doc(propertyCardId)
-          .collection('Expenses')
+      final currentUid = FirebasePaths.requireUid();
+      final ownerUid =
+          (propertyOwnerUid != null && propertyOwnerUid.isNotEmpty)
+          ? propertyOwnerUid
+          : currentUid;
+      final cardId = int.tryParse(propertyCardId) ?? 0;
+      final propertyId = FirebasePaths.propertyId(
+        ownerUid: ownerUid,
+        cardId: cardId,
+      );
+      final result = await FirebasePaths.expensesCol
+          .where('propertyId', isEqualTo: propertyId)
           .get();
-      if (result.docs.isEmpty) return [];
-      return result.docs.map((e) => ExpenseModel.fromMap(e.data())).toList();
+      if (result.docs.isNotEmpty) {
+        return result.docs
+            .map((e) => ExpenseModel.fromMap(e.data()))
+            .toList();
+      }
+
+      if (ownerUid != currentUid) return [];
+
+      return await _migrateLegacyExpenses(
+        propertyCardId: propertyCardId,
+        ownerUid: ownerUid,
+        cardId: cardId,
+      );
     } on FirebaseException catch (e) {
       switch (e.code) {
         case 'resource-exhausted':
@@ -82,19 +137,51 @@ class ExpenseRemoteSource {
     }
   }
 
+  Future<List<ExpenseModel>> _migrateLegacyExpenses({
+    required String propertyCardId,
+    required String ownerUid,
+    required int cardId,
+  }) async {
+    final currentUserEmail = await _currentUserEmail();
+    final legacy = await FirebasePaths.legacyExpensesCol(
+      email: currentUserEmail,
+      cardId: propertyCardId,
+    ).get();
+    if (legacy.docs.isEmpty) return [];
+
+    final list = <ExpenseModel>[];
+    for (final doc in legacy.docs) {
+      final model = ExpenseModel.fromMap(doc.data());
+      list.add(model);
+      final localExpenseId = model.id ?? 0;
+      await FirebasePaths.expenseDoc(
+        FirebasePaths.expenseId(ownerUid: ownerUid, expenseId: localExpenseId),
+      ).set(
+        _expensePayload(
+          model: model,
+          propertyOwnerUid: ownerUid,
+          createdById: ownerUid,
+        ),
+        SetOptions(merge: true),
+      );
+    }
+    return list;
+  }
+
   Future updateExpense({required ExpenseModel model}) async {
     try {
-      String currentUserEmail = await sqfLiteCurd
-          .get(tableKey: TableKeys.currentUserEmailTable)
-          .then((value) => value.first['email']);
-      await firestore
-          .collection('Property')
-          .doc(currentUserEmail)
-          .collection('PropertyList')
-          .doc(model.propertyCardId.toString())
-          .collection('Expenses')
-          .doc(model.id.toString())
-          .update(model.toMap());
+      final ownerUid = FirebasePaths.requireUid();
+      final localExpenseId = model.id ?? 0;
+      await FirebasePaths.expenseDoc(
+        FirebasePaths.expenseId(ownerUid: ownerUid, expenseId: localExpenseId),
+      ).set(
+        _expensePayload(
+          model: model,
+          propertyOwnerUid: ownerUid,
+          createdById: ownerUid,
+        ),
+        SetOptions(merge: true),
+      );
     } on FirebaseException catch (e) {
       switch (e.code) {
         case 'resource-exhausted':

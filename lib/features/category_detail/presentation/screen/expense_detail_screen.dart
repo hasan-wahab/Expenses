@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:expense_app/core/constant/app_currency.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/extensions/string_extension.dart';
@@ -34,6 +35,7 @@ class ExpenseDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.bgColor,
       appBar: CustomAppBar(
         title: expense.title.toString().toTitleCase(),
+        isLeading: true,
       ),
       body: SafeArea(
         top: false,
@@ -51,9 +53,9 @@ class ExpenseDetailScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SmallText(text: 'Amount'),
+                      SmallText(text: 'Amount (PKR)'),
                       SecondaryText(
-                        text: 'Rs. ${expense.amount}',
+                        text: AppCurrency.format(expense.amount),
                         style: context.secondaryText!.copyWith(
                           color: AppColors.redColor,
                         ),
@@ -124,7 +126,7 @@ class ExpenseDetailScreen extends StatelessWidget {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             errorBuilder: (context, error, stackTrace) {
-                              return _noReceipt();
+                              return _noReceipt(context);
                             },
                           ),
                           Positioned(
@@ -138,14 +140,14 @@ class ExpenseDetailScreen extends StatelessWidget {
                               ),
                               child: Icon(
                                 Icons.fullscreen,
-                                color: AppColors.white,
+                                color: context.iconOnPrimary,
                                 size: 18.r,
                               ),
                             ),
                           ),
                         ],
                       )
-                    : _noReceipt(),
+                    : _noReceipt(context),
               ),
             ),
           ),
@@ -155,13 +157,13 @@ class ExpenseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _noReceipt() {
+  Widget _noReceipt(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           Icons.receipt_long_outlined,
-          color: AppColors.primary,
+          color: context.iconAccent,
           size: 40.r,
         ),
         SizedBox(height: 8.h),

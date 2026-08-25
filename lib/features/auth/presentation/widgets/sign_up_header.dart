@@ -11,8 +11,6 @@ class SignUpHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 108.h,
-      width: 350.w,
       child: Column(
         children: [
           LargeText(text: AuthText.joinText),

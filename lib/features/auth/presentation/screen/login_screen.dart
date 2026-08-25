@@ -21,7 +21,10 @@ import '../../../widgets/small_text.dart';
 import '../widgets/login_header.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  /// When true (e.g. after Logout), do not auto-show biometric prompt.
+  final bool skipFingerprintPrompt;
+
+  const LoginScreen({super.key, this.skipFingerprintPrompt = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -44,6 +47,19 @@ class _LoginScreenState extends State<LoginScreen> {
     emailCtrl.text = savedEmail;
   }
 
+  /// If fingerprint is enabled and a Firebase session still exists,
+  /// show system biometric on login open.
+  Future<void> _promptFingerprintIfEnabled(AuthBloc bloc) async {
+    final enabled = await sl<AuthUseCases>().getFingerPrintCall() == true;
+    if (!mounted || !enabled) return;
+
+    /// After logout there is no session — skip auto prompt (email login first).
+    final hasSession = await sl<AuthUseCases>().hasValidSessionCall();
+    if (!mounted || !hasSession) return;
+
+    bloc.add(LoginWithFingerPrintEvent());
+  }
+
   @override
   void dispose() {
     [emailCtrl, passwordCtrl].disposeAll();
@@ -53,20 +69,25 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<AuthBloc>(),
+      create: (context) {
+        final bloc = sl<AuthBloc>();
+        if (!widget.skipFingerprintPrompt) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _promptFingerprintIfEnabled(bloc);
+          });
+        }
+        return bloc;
+      },
       child: BlocListener<AuthBloc, AuthStates>(
         listener: (context, state) {
           if (state is LoginStatusState) {
-            /// Loading...
             if (state.status == Status.loading) {
               context.showCustomLoading();
             }
-
-            /// If user User Successfully login then go to Nave Bar Page
             if (state.status == Status.success) {
+              context.hideCustomLoading();
               passwordCtrl.reset();
               if (state.message == 'Login with fingerprint') {
-                context.pop();
                 context.push(RoutesName.syncDataScreen, extra: true);
               } else {
                 emailCtrl.reset();
@@ -74,9 +95,8 @@ class _LoginScreenState extends State<LoginScreen> {
               }
             }
 
-            /// If message is No_fingerprint then show the dialog for Device user
             if (state.status == Status.error) {
-              context.pop();
+              context.hideCustomLoading();
               if (state.message == 'No_Fingerprint') {
                 context.appSettings(
                   type: AppSettingsType.security,
@@ -84,6 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   message:
                       'No fingerprint is set up on this device. Please add a fingerprint in your device settings.',
                 );
+              } else if (state.message ==
+                  'Please touch the fingerprint sensor.') {
+                /// User canceled biometric — stay on login for email/password.
               } else {
                 /// Other message will show on display
                 context.showSnackBar(state.message.toString(), isError: true);

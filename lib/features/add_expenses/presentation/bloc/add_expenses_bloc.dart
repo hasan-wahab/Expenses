@@ -44,7 +44,11 @@ class AddExpensesBloc extends Bloc<AddExpensesEvent, AddExpensesStates> {
     try {
       emit(SaveExpensesState(status: Status.loading));
 
-      await useCases.addNewExpenseCall(entityModel: event.expenseEntity);
+      await useCases.addNewExpenseCall(
+        entityModel: event.expenseEntity,
+        propertyOwnerUid: event.propertyOwnerUid,
+        isSharedWithMe: event.isSharedWithMe,
+      );
 
       emit(SaveExpensesState(status: Status.success));
     } catch (e) {

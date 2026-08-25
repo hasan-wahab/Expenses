@@ -32,3 +32,8 @@ class OnAgreeEvent extends AuthEvents {
   bool isAgree;
   OnAgreeEvent({required this.isAgree});
 }
+
+class SendEmailVerificationEvent extends AuthEvents {}
+
+class CheckEmailVerifiedEvent extends AuthEvents {}
+

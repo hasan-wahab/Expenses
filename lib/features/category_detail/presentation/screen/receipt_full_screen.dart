@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
+import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,7 +32,7 @@ class ReceiptFullScreen extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.broken_image_outlined,
-                      color: AppColors.white,
+                      color: context.iconOnPrimary,
                       size: 48.r,
                     ),
                     SizedBox(height: 12.h),

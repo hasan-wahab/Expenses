@@ -14,6 +14,8 @@ class ExpenseModel extends ExpenseEntity {
     super.updateAt,
     super.syncStatus,
     super.isDeleted,
+    super.propertyOwnerId,
+    super.isSharedWithMe = false,
   });
 
   factory ExpenseModel.fromEntity(ExpenseEntity entity) {
@@ -30,6 +32,8 @@ class ExpenseModel extends ExpenseEntity {
       updateAt: entity.updateAt,
       syncStatus: entity.syncStatus,
       isDeleted: entity.isDeleted,
+      propertyOwnerId: entity.propertyOwnerId,
+      isSharedWithMe: entity.isSharedWithMe,
     );
   }
 
@@ -47,6 +51,8 @@ class ExpenseModel extends ExpenseEntity {
       updateAt: updateAt,
       syncStatus: syncStatus,
       isDeleted: isDeleted,
+      propertyOwnerId: propertyOwnerId,
+      isSharedWithMe: isSharedWithMe,
     );
   }
 
@@ -64,6 +70,8 @@ class ExpenseModel extends ExpenseEntity {
       'updateAt': updateAt,
       'syncStatus': syncStatus,
       'isDeleted': isDeleted,
+      'propertyOwnerId': propertyOwnerId ?? '',
+      'isSharedWithMe': isSharedWithMe ? 1 : 0,
     };
   }
 
@@ -81,42 +89,20 @@ class ExpenseModel extends ExpenseEntity {
       updateAt: map['updateAt'],
       syncStatus: map['syncStatus'],
       isDeleted: map['isDeleted'],
+      propertyOwnerId: (map['propertyOwnerId']?.toString() ?? '').isEmpty
+          ? null
+          : map['propertyOwnerId']?.toString(),
+      isSharedWithMe:
+          map['isSharedWithMe'] == true ||
+          map['isSharedWithMe'] == 1 ||
+          map['isSharedWithMe'] == '1',
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'expenseId': id,
-      'propertyCardId': propertyCardId,
-      'title': title,
-      'amount': amount,
-      'categoryType': categoryType,
-      'date': date,
-      'note': note,
-      'receiptImage': receiptImage,
-      'createAt': createAt,
-      'updateAt': updateAt,
-      'syncStatus': syncStatus,
-      'isDeleted': isDeleted,
-    };
-  }
+  Map<String, dynamic> toJson() => toMap();
 
-  factory ExpenseModel.fromJson(Map<String, dynamic> json) {
-    return ExpenseModel(
-      id: json['expenseId'],
-      propertyCardId: json['propertyCardId'],
-      title: json['title'],
-      amount: (json['amount'] as num?)?.toDouble(),
-      categoryType: json['categoryType'],
-      date: json['date'],
-      note: json['note'],
-      receiptImage: json['receiptImage'],
-      createAt: json['createAt'],
-      updateAt: json['updateAt'],
-      syncStatus: json['syncStatus'],
-      isDeleted: json['isDeleted'],
-    );
-  }
+  factory ExpenseModel.fromJson(Map<String, dynamic> json) =>
+      ExpenseModel.fromMap(json);
 
   @override
   ExpenseModel copyWith({
@@ -132,6 +118,8 @@ class ExpenseModel extends ExpenseEntity {
     String? updateAt,
     String? syncStatus,
     int? isDeleted,
+    String? propertyOwnerId,
+    bool? isSharedWithMe,
   }) {
     return ExpenseModel(
       id: id ?? this.id,
@@ -146,6 +134,8 @@ class ExpenseModel extends ExpenseEntity {
       updateAt: updateAt ?? this.updateAt,
       syncStatus: syncStatus ?? this.syncStatus,
       isDeleted: isDeleted ?? this.isDeleted,
+      propertyOwnerId: propertyOwnerId ?? this.propertyOwnerId,
+      isSharedWithMe: isSharedWithMe ?? this.isSharedWithMe,
     );
   }
 }

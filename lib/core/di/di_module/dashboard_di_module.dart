@@ -1,7 +1,6 @@
 import 'package:expense_app/core/data_source/properties_data_source/properties_remote_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/propertis_local_source.dart';
 import 'package:expense_app/core/di/di_module/di_module.dart';
-import 'package:expense_app/core/storage/sqflite_curd.dart';
 import 'package:expense_app/features/dashboard/data/property_repo.dart';
 import 'package:get_it/get_it.dart';
 
@@ -19,6 +18,7 @@ class DashboardDiModule extends DIModule {
         () => PropertyRepo(
           propertiesLocalSource: sl<PropertiesLocalSource>(),
           expenseLocalSource: sl<ExpenseLocalSource>(),
+          propertiesRemoteSource: sl<PropertiesRemoteSource>(),
         ),
       )
       ..registerLazySingleton<DashboardUseCase>(

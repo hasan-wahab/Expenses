@@ -5,6 +5,10 @@ import '../../data/models/expense_model.dart';
 abstract class ExpenseRepoInter {
   Future addNewCategory(String categoryName);
   Future getCategories();
-  Future addNewExpense({required ExpenseModel model});
+  Future addNewExpense({
+    required ExpenseModel model,
+    String? propertyOwnerUid,
+    bool isSharedWithMe = false,
+  });
   Future getPropertyCard();
 }

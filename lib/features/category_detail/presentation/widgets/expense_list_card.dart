@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:expense_app/core/constant/app_currency.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/extensions/string_extension.dart';
@@ -62,10 +63,10 @@ class ExpenseListCard extends StatelessWidget {
                             File(expense.receiptImage!),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              return _receiptPlaceholder();
+                              return _receiptPlaceholder(context);
                             },
                           )
-                        : _receiptPlaceholder(),
+                        : _receiptPlaceholder(context),
                   ),
                 ),
               ),
@@ -86,7 +87,7 @@ class ExpenseListCard extends StatelessWidget {
                           ),
                         ),
                         SmallText(
-                          text: 'Rs : ${expense.amount}',
+                          text: AppCurrency.format(expense.amount),
                           style: context.smallText!.copyWith(
                             color: AppColors.redColor,
                           ),
@@ -113,7 +114,7 @@ class ExpenseListCard extends StatelessWidget {
                         Icon(
                           Icons.arrow_forward_ios_outlined,
                           size: 14.r,
-                          color: AppColors.primary,
+                          color: context.iconAccent,
                         ),
                       ],
                     ),
@@ -127,12 +128,12 @@ class ExpenseListCard extends StatelessWidget {
     );
   }
 
-  Widget _receiptPlaceholder() {
+  Widget _receiptPlaceholder(BuildContext context) {
     return ColoredBox(
       color: AppColors.primary.withOpacity(0.08),
       child: Icon(
         Icons.receipt_long_outlined,
-        color: AppColors.primary,
+        color: context.iconAccent,
         size: 28.r,
       ),
     );

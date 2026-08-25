@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:expense_app/features/settings/data/local.dart';
@@ -21,6 +20,43 @@ class SettingsBloc extends Bloc<SettingsEvents, SettingsStates> {
     Emitter<SettingsStates> emit,
   ) async {
     try {
+      final isFingerToggle = event.isFingerPrintEnable != null;
+
+      /// Fingerprint toggle: keep profile on screen, no loading flash
+      if (isFingerToggle) {
+        final current = state is SettingsDataStates
+            ? (state as SettingsDataStates).entityModel
+            : SettingsEntityModel();
+        final wantEnable = event.isFingerPrintEnable!;
+
+        /// Instant UI update — no spinner on switch
+        emit(
+          SettingsDataStates(
+            entityModel: current.copyWith(isEnableFingerPrint: wantEnable),
+            status: Status.success,
+          ),
+        );
+
+        final currentlyOn = await localRepo.getFingerPrint();
+        if (wantEnable && !currentlyOn) {
+          await localRepo.addFingerPrint();
+        } else if (!wantEnable && currentlyOn) {
+          await localRepo.removeFingerPrint();
+        }
+
+        final isEnable = await localRepo.getFingerPrint();
+        if (isEnable != wantEnable) {
+          emit(
+            SettingsDataStates(
+              entityModel: current.copyWith(isEnableFingerPrint: isEnable),
+              status: Status.success,
+            ),
+          );
+        }
+        return;
+      }
+
+      /// First open / refresh: show loading until profile is ready
       emit(
         SettingsDataStates(
           entityModel: SettingsEntityModel(),
@@ -28,40 +64,22 @@ class SettingsBloc extends Bloc<SettingsEvents, SettingsStates> {
         ),
       );
 
-      SettingsEntityModel model = await localRepo.settingsProfileCardData();
+      final model = await localRepo.settingsProfileCardData();
+      final isEnable = await localRepo.getFingerPrint();
 
-      print("From Setting Bloc ${model.email}");
-
-      /// Initially from local storage get
-      bool isEnable = await localRepo.getFingerPrint();
-
-      /// If event.finger !=null
-      if (event.isFingerPrintEnable != null) {
-        /// Then isEnable is true then remove
-        if (isEnable == true) {
-          await localRepo.removeFingerPrint();
-        } else {
-          /// Other wise add
-          await localRepo.addFingerPrint();
-        }
-      }
-
-      /// Here pass the new value from use add or remove
-      isEnable = await localRepo.getFingerPrint();
       emit(
         SettingsDataStates(
-          entityModel: SettingsEntityModel().copyWith(
-            imageUrl: model.imageUrl,
-            isEnableFingerPrint: isEnable,
-            phone: model.phone,
-            name: model.name,
-            email: model.email,
-          ),
+          entityModel: model.copyWith(isEnableFingerPrint: isEnable),
           status: Status.success,
         ),
       );
     } catch (e) {
-      print(e);
+      emit(
+        SettingsDataStates(
+          entityModel: SettingsEntityModel(),
+          status: Status.error,
+        ),
+      );
     }
   }
 }

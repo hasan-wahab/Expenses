@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 class DownloadsSaver {
   DownloadsSaver._();
 
-  static const _channel = MethodChannel('com.hasan.expense_app/downloads');
+  static const _channel = MethodChannel('com.neonweb.expensioapp.app/downloads');
 
   /// Returns saved path / content uri string.
   static Future<String> savePdf({

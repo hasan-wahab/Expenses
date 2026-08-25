@@ -11,7 +11,9 @@ import 'di_module/auth_di_module.dart';
 import 'di_module/export_to_pdf_di_module.dart';
 import 'di_module/image_picker_di_module.dart';
 import 'di_module/nave_bar_module.dart';
+import 'di_module/onboarding_di_module.dart';
 import 'di_module/personal_info_di_module.dart';
+import 'di_module/share_property_di_module.dart';
 import 'di_module/sync_data_module.dart';
 
 final sl = GetIt.instance;
@@ -19,6 +21,7 @@ final sl = GetIt.instance;
 Future getITSetup() async {
   List<DIModule> diModules = [
     DbDiModule(sl),
+    OnboardingDiModule(sl),
     AuthDiModule(sl),
     ImagePickerDiModule(sl),
     SyncDataDiModule(sl),
@@ -30,6 +33,7 @@ Future getITSetup() async {
     SettingsDiModel(sl),
     PersonalInfoDiModule(sl),
     ExportToPdfDiModule( sl),
+    SharePropertyDiModule(sl),
   ];
 
   for (var element in diModules) {

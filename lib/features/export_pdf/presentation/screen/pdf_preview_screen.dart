@@ -5,6 +5,7 @@ import 'package:expense_app/core/constant/const_text/export_pdf_text.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/core/utils/downloads_saver.dart';
 import 'package:expense_app/core/utils/property_report_pdf_builder.dart';
+import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:flutter/foundation.dart';
@@ -45,14 +46,11 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
           if (state is DownloadPdfState) {
             switch (state.status) {
               case Status.loading:
-                context.showCustomLoading();
                 break;
               case Status.success:
-                context.pop();
                 context.showSnackBar(state.message);
                 break;
               case Status.error:
-                context.pop();
                 context.showSnackBar(state.message, isError: true);
                 break;
               case Status.initial:
@@ -65,10 +63,14 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
           }
         },
         builder: (context, state) {
+          final downloading =
+              state is DownloadPdfState && state.status == Status.loading;
           return Scaffold(
             backgroundColor: const Color(0xFFF5F5F5),
             appBar: CustomAppBar(title: 'PDF Preview', isLeading: true),
-            body: Column(
+            body: downloading
+                ? AppShimmer.page()
+                : Column(
               children: [
                 Expanded(
                   child: PdfPreview(
@@ -81,9 +83,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
                     canDebug: false,
                     useActions: false,
                     pdfFileName: '${widget.propertyName}.pdf',
-                    loadingWidget: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    loadingWidget: AppShimmer.page(),
                     onError: (context, error) => Center(
                       child: Padding(
                         padding: EdgeInsets.all(20.w),

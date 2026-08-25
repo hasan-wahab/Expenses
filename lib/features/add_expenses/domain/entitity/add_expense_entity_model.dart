@@ -15,6 +15,8 @@ class ExpenseEntity {
 
   final String? syncStatus;
   final int? isDeleted;
+  final String? propertyOwnerId;
+  final bool isSharedWithMe;
 
   const ExpenseEntity({
     this.id,
@@ -29,6 +31,8 @@ class ExpenseEntity {
     this.updateAt,
     this.syncStatus,
     this.isDeleted,
+    this.propertyOwnerId,
+    this.isSharedWithMe = false,
   });
 
   ExpenseEntity copyWith({
@@ -44,6 +48,8 @@ class ExpenseEntity {
     String? updateAt,
     String? syncStatus,
     int? isDeleted,
+    String? propertyOwnerId,
+    bool? isSharedWithMe,
   }) {
     return ExpenseEntity(
       id: id ?? this.id,
@@ -58,6 +64,8 @@ class ExpenseEntity {
       updateAt: updateAt ?? this.updateAt,
       syncStatus: syncStatus ?? this.syncStatus,
       isDeleted: isDeleted ?? this.isDeleted,
+      propertyOwnerId: propertyOwnerId ?? this.propertyOwnerId,
+      isSharedWithMe: isSharedWithMe ?? this.isSharedWithMe,
     );
   }
 }

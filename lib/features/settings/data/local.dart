@@ -1,14 +1,19 @@
 import 'package:expense_app/core/constant/app_key/table_keys.dart';
+import 'package:expense_app/core/data_source/auth_data_source/auth_remote_source.dart';
+import 'package:expense_app/core/extensions/string_extension.dart';
 import 'package:expense_app/core/storage/sqflite_curd.dart';
-
+import 'package:expense_app/core/utils/profile_image_utils.dart';
 import 'package:expense_app/features/auth/data/models/auth_model.dart';
-
 import 'package:expense_app/features/settings/domain/entitity/settings_entity.dart';
 import 'package:expense_app/features/settings/domain/repos_inter/settings_interface.dart';
 
 class SettingsLocalRepo implements SettingsInterface {
   SqfLiteCurd sqfLiteCurd;
-  SettingsLocalRepo({required this.sqfLiteCurd});
+  AuthRemoteSource authRemoteSource;
+  SettingsLocalRepo({
+    required this.sqfLiteCurd,
+    required this.authRemoteSource,
+  });
 
   @override
   Future addFingerPrint() async {
@@ -43,20 +48,51 @@ class SettingsLocalRepo implements SettingsInterface {
     List<Map<String, dynamic>> email = await sqfLiteCurd.get(
       tableKey: TableKeys.currentUserEmailTable,
     );
+    if (email.isEmpty) {
+      return SettingsEntityModel();
+    }
+    final currentEmail = email.first['email'].toString();
     final result = await sqfLiteCurd.get(
       tableKey: TableKeys.userTable,
-      whereArgs: [email.first['email']],
+      whereArgs: [currentEmail],
       where: 'email = ?',
     );
     if (result.isNotEmpty) {
       userModel = UserModel.fromMap(result.first);
     }
-    SettingsEntityModel settingsEntityModel = SettingsEntityModel(
-      name: userModel.name.toString(),
-      email: userModel.email.toString(),
-      phone: userModel.phone.toString(),
-      imageUrl: userModel.imageUrl.toString(),
+
+    final localName = userModel.name.orEmpty;
+    final name = localName.hasValue
+        ? localName
+        : authRemoteSource.displayName.orEmpty;
+
+    /// Prefer valid local file / stored https; else Auth photoURL
+    var imageUrl = resolveProfileImageUrl(
+      storedImageUrl: userModel.imageUrl,
+      networkFallbackUrl: authRemoteSource.photoUrl,
     );
-    return settingsEntityModel;
+
+    /// No local/Auth image → load https imageUrl from Firestore for this email
+    if (imageUrl.isEmpty) {
+      final remoteUser = await authRemoteSource.getUserByEmail(currentEmail);
+      final remoteImage = remoteUser?.imageUrl.orEmpty ?? '';
+      if (remoteImage.isNetworkUrl) {
+        imageUrl = remoteImage;
+      } else {
+        imageUrl = resolveProfileImageUrl(
+          storedImageUrl: remoteImage,
+          networkFallbackUrl: authRemoteSource.photoUrl,
+        );
+      }
+    }
+
+    return SettingsEntityModel(
+      name: name,
+      email: userModel.email.orEmpty.isNotEmpty
+          ? userModel.email.orEmpty
+          : authRemoteSource.currentUserEmail.orEmpty,
+      phone: userModel.phone.orEmpty,
+      imageUrl: imageUrl,
+    );
   }
 }

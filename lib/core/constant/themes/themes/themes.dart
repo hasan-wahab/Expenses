@@ -4,21 +4,89 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
+    const colorScheme = ColorScheme.light(
+      brightness: Brightness.light,
+      primary: AppColors.primary,
+      onPrimary: AppColors.white,
+      primaryContainer: AppColors.primaryDark,
+      onPrimaryContainer: AppColors.white,
+      secondary: AppColors.primaryDark,
+      onSecondary: AppColors.white,
+      tertiary: AppColors.iconsColor,
+      onTertiary: AppColors.white,
+      error: AppColors.redColor,
+      onError: AppColors.white,
+      surface: AppColors.bgColor,
+      onSurface: AppColors.textBlack,
+      onSurfaceVariant: AppColors.iconsBlackColor,
+      outline: AppColors.secondaryTColor,
+      shadow: AppColors.shadowColor,
+    );
+
+    final defaultIconTheme = IconThemeData(
+      size: 22.r,
+      color: AppColors.iconsColor,
+    );
+
     return ThemeData(
       splashFactory: InkRipple.splashFactory,
-
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
-        brightness: Brightness.light,
-        primary: AppColors.primary,
-        onPrimary: AppColors.primary,
-        error: AppColors.redColor,
-        onError: AppColors.redColor,
-        shadow: AppColors.shadowColor,
-      ),
+      colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.bgColor,
       fontFamily: 'Inter',
-      iconTheme: IconThemeData(size: 20.r, color: AppColors.iconsColor),
+      iconTheme: defaultIconTheme,
+      primaryIconTheme: IconThemeData(size: 22.r, color: AppColors.primary),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.bgColor,
+        foregroundColor: AppColors.textBlack,
+        elevation: 0,
+        iconTheme: IconThemeData(
+          size: 22.r,
+          color: AppColors.iconsBlackColor,
+        ),
+        actionsIconTheme: IconThemeData(
+          size: 22.r,
+          color: AppColors.primary,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(foregroundColor: AppColors.iconsColor),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        elevation: 2,
+      ),
+      listTileTheme: const ListTileThemeData(
+        iconColor: AppColors.iconsColor,
+      ),
+      popupMenuTheme: const PopupMenuThemeData(
+        iconColor: AppColors.iconsColor,
+        color: AppColors.white,
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.primary;
+          }
+          return AppColors.white;
+        }),
+        checkColor: const WidgetStatePropertyAll(AppColors.white),
+        side: const BorderSide(color: AppColors.primary, width: 1.6),
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.primary,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.bgColor,
+        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(size: 22.r, color: AppColors.primary);
+          }
+          return IconThemeData(size: 22.r, color: AppColors.iconsBlackColor);
+        }),
+      ),
       // Responsive Typography System
       textTheme: TextTheme(
         headlineSmall: TextStyle(

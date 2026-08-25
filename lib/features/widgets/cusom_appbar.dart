@@ -1,14 +1,16 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constant/themes/themes/colors.dart';
+import '../../core/extensions/context_extension.dart';
 import 'app_b_text.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final IconData? leadingIcon;
-  bool isLeading = true;
+  final bool isLeading;
   final IconData? actionIcon1;
   final IconData? actionIcon2;
   final VoidCallback? leadingOnTap;
@@ -16,11 +18,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? actionIcon2Ontap;
   final String? profileImagePath;
 
-  CustomAppBar({
+  const CustomAppBar({
     super.key,
-    this.isLeading = false,
+    this.isLeading = true,
     required this.title,
-    this.leadingIcon = Icons.arrow_back_ios,
+    this.leadingIcon = CupertinoIcons.back,
     this.actionIcon1,
     this.actionIcon2,
     this.leadingOnTap,
@@ -57,7 +59,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     isLeading
                         ? InkWell(
                             onTap: leadingOnTap ?? () => context.pop(),
-                            child: Icon(leadingIcon),
+                            borderRadius: BorderRadius.circular(20.r),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 8.h,
+                                horizontal: 4.w,
+                              ),
+                              child: Icon(
+                                leadingIcon,
+                                size: 22.r,
+                                color: context.iconMuted,
+                              ),
+                            ),
                           )
                         : const SizedBox.shrink(),
                     AppBarText(text: title),
@@ -88,7 +101,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 padding: EdgeInsets.all(4.r),
                                 child: Icon(
                                   actionIcon1,
-                                  color: AppColors.primary,
+                                  color: context.iconAccent,
                                 ),
                               ),
                             ),
@@ -100,7 +113,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 padding: EdgeInsets.all(4.r),
                                 child: Icon(
                                   actionIcon2,
-                                  color: AppColors.primary,
+                                  color: context.iconAccent,
                                 ),
                               ),
                             ),

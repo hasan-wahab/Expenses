@@ -1,7 +1,7 @@
 class AddExpenseText {
   static String get addExpenseText => 'Add Expense';
-  static String get amount => 'Amount (Rs.)';
-  static String get enterAmount => 'Enter amount';
+  static String get amount => 'Amount';
+  static String get enterAmount => 'Enter amount in PKR';
   static String get category => 'Category';
   static String get date => 'Select date';
   static String get notes => 'Notes (Optional)';

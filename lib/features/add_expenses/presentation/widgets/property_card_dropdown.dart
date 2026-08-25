@@ -48,8 +48,12 @@ class PropertyCardDropdown extends StatelessWidget {
           items: dashboardCardList
               .map(
                 (e) => DropdownItem(
-                  value: e.cardId.toString(),
-                  child: SmallText(text: e.propertyName.toString()),
+                  value: e.listKey,
+                  child: SmallText(
+                    text: e.isSharedWithMe
+                        ? '${e.propertyName} (Shared)'
+                        : e.propertyName,
+                  ),
                 ),
               )
               .toList(),

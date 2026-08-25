@@ -4,6 +4,7 @@ import 'package:expense_app/core/extensions/date_extension.dart';
 import 'package:expense_app/features/add_expenses/presentation/widgets/date_selection.dart';
 import 'package:expense_app/features/export_pdf/presentation/screen/export_to_pdf_screen.dart';
 import 'package:expense_app/features/settings/presentation/widgets/account_settings.dart';
+import 'package:expense_app/features/widgets/app_checkbox.dart';
 import 'package:expense_app/features/widgets/extra_small_text.dart';
 import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
@@ -221,9 +222,9 @@ class ExportToPdfTiles extends StatelessWidget {
           contentPadding: .symmetric(horizontal: 16.w),
           leading: Icon(leadingIcon),
           title: SecondaryText(text: title),
-          trailing: Checkbox(
+          trailing: AppCheckbox(
             value: isOn,
-            onChanged: (value) => onChange(value!),
+            onChanged: onChange,
           ),
         ),
         isShowLastIndexDivider

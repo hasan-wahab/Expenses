@@ -1,10 +1,9 @@
-import 'dart:io';
-
-import 'package:expense_app/core/constant/const_text/settings_screen_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
+import 'package:expense_app/core/extensions/context_extension.dart';
+import 'package:expense_app/core/extensions/string_extension.dart';
 import 'package:expense_app/features/settings/domain/entitity/settings_entity.dart';
 import 'package:expense_app/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:expense_app/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:expense_app/features/widgets/profile_avatar_image.dart';
 import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +13,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constant/enums.dart';
 import '../../../../core/constant/wrapers.dart';
-import '../../../../core/extensions/context_extension.dart';
-import '../../../../core/di/get_it.dart';
 import '../../../../core/router/routes_name.dart';
 import '../bloc/settings_events.dart';
-import '../bloc/settings_states.dart';
 
 class MinProfileInfoCard extends StatelessWidget {
   SettingsEntityModel entityModel = SettingsEntityModel();
@@ -27,13 +23,13 @@ class MinProfileInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final name = entityModel.name.orEmpty;
+    final email = entityModel.email.orEmpty;
+
     return Card(
       child: Container(
-        padding: .all(16.r),
-        decoration: BoxDecoration(
-          borderRadius: .circular(12.r),
-          // border: .all(color: AppColors.primary),
-        ),
+        padding: EdgeInsets.all(16.r),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12.r)),
         child: Row(
           spacing: 24.w,
           children: [
@@ -53,35 +49,32 @@ class MinProfileInfoCard extends StatelessWidget {
                 }
               },
               child: Stack(
-                alignment: .bottomEnd,
+                alignment: Alignment.bottomRight,
                 children: [
                   ClipOval(
                     child: Container(
                       height: 70.h,
                       width: 70.w,
                       decoration: BoxDecoration(
-                        border: .all(color: AppColors.primary, width: 2),
-                        shape: .circle,
+                        border: Border.all(color: AppColors.primary, width: 2),
+                        shape: BoxShape.circle,
                       ),
-                      child: entityModel.imageUrl != ''
-                          ? Image.file(
-                              File(entityModel.imageUrl!),
-                              fit: .cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(Icons.image);
-                              },
-                            )
-                          : Icon(Icons.image),
+                      child: ProfileAvatarImage(
+                        imageUrl: entityModel.imageUrl,
+                        name: name,
+                        email: email,
+                        fontSize: 28.sp,
+                      ),
                     ),
                   ),
                   Container(
                     height: 25.h,
                     width: 25.w,
                     decoration: BoxDecoration(
-                      shape: .circle,
+                      shape: BoxShape.circle,
                       color: AppColors.primary,
                     ),
-                    child: Icon(Icons.edit, color: AppColors.white, size: 15.r),
+                    child: Icon(Icons.edit, color: context.iconOnPrimary, size: 15.r),
                   ),
                 ],
               ),
@@ -89,10 +82,10 @@ class MinProfileInfoCard extends StatelessWidget {
 
             /// Info Column
             Column(
-              crossAxisAlignment: .start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SecondaryText(text: entityModel.email.toString()),
-                SmallText(text: entityModel.name.toString()),
+                SecondaryText(text: name.isNotEmpty ? name : email),
+                if (name.isNotEmpty && email.isNotEmpty) SmallText(text: email),
               ],
             ),
           ],

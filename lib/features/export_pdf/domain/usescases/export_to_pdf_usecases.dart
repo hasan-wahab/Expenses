@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:expense_app/core/constant/app_currency.dart';
 
 import '../../../../core/utils/property_report_pdf_builder.dart';
 import '../../../add_expenses/data/models/expense_model.dart';
@@ -28,7 +29,7 @@ class ExportToPdfUseCases {
           (e) => PdfExpenseItem(
             name: e.title.toString(),
             date: e.date.toString(),
-            price: e.amount.toString(),
+            price: AppCurrency.format(e.amount),
             description: e.note.toString(),
           ),
         )
@@ -40,7 +41,7 @@ class ExportToPdfUseCases {
     return buildPdfCall(
       propertyName: propertyName,
       location: location,
-      totalExpenses: totalExpense.toString(),
+      totalExpenses: AppCurrency.format(totalExpense),
       reportingPeriod: reportingPeriod,
       expenses: expenseItems,
     );

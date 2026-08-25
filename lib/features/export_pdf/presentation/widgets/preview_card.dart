@@ -1,5 +1,6 @@
 import 'package:expense_app/core/constant/const_text/export_pdf_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
+import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/features/widgets/extra_small_text.dart';
 import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class PreviewCard extends StatelessWidget {
                 color: AppColors.primary,
                 borderRadius: .circular(12.r),
               ),
-              child: Icon(Icons.image, color: AppColors.white),
+              child: Icon(Icons.image, color: context.iconOnPrimary),
             ),
             Column(
               mainAxisSize: .min,

@@ -7,13 +7,30 @@ import '../../../features/auth/data/models/auth_model.dart';
 class AuthLocalSource {
   SqfLiteCurd sqfLiteCurd;
   AuthLocalSource({required this.sqfLiteCurd});
+
   Future save({required UserModel model}) async {
     try {
-      await sqfLiteCurd.save(
+      final email = model.email.toString();
+      final map = Map<String, dynamic>.from(model.toMap())..remove('id');
+      final existing = await sqfLiteCurd.get(
         tableKey: TableKeys.userTable,
-        value: model.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        where: 'email = ?',
+        whereArgs: [email],
       );
+      if (existing.isNotEmpty) {
+        await sqfLiteCurd.update(
+          tableKey: TableKeys.userTable,
+          value: map,
+          where: 'email = ?',
+          whereArgs: [email],
+        );
+      } else {
+        await sqfLiteCurd.save(
+          tableKey: TableKeys.userTable,
+          value: map,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
     } on Exception {
       rethrow;
     }
@@ -21,12 +38,13 @@ class AuthLocalSource {
 
   Future<UserModel> get({required String email}) async {
     try {
-      UserModel model;
-      final result = await sqfLiteCurd.get(tableKey: TableKeys.userTable);
+      final result = await sqfLiteCurd.get(
+        tableKey: TableKeys.userTable,
+        where: 'email = ?',
+        whereArgs: [email],
+      );
       if (result.isEmpty) throw 'No data found';
-      print(result);
-      model = UserModel.fromMap(result.first);
-      return model;
+      return UserModel.fromMap(result.first);
     } on Exception {
       rethrow;
     }
@@ -34,9 +52,10 @@ class AuthLocalSource {
 
   Future update({required UserModel model}) async {
     try {
+      final map = Map<String, dynamic>.from(model.toMap())..remove('id');
       await sqfLiteCurd.update(
         tableKey: TableKeys.userTable,
-        value: model.toMap(),
+        value: map,
         where: 'email = ?',
         whereArgs: [model.email],
       );
@@ -85,7 +104,6 @@ class AuthLocalSource {
         tableKey: TableKeys.currentUserEmailTable,
       );
       if (result.isEmpty) throw 'No data found';
-      print(result);
       return result.first['email'];
     } on Exception {
       rethrow;
@@ -105,5 +123,24 @@ class AuthLocalSource {
     } else {
       return false;
     }
+  }
+
+  /// Local app lock after Logout / signup (Firebase session may still be active).
+  Future<void> setRequiresLogin() async {
+    await sqfLiteCurd.save(
+      tableKey: TableKeys.appLockTable,
+      value: {'id': 1, 'requires_login': 1},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> clearRequiresLogin() async {
+    await sqfLiteCurd.delete(tableKey: TableKeys.appLockTable);
+  }
+
+  Future<bool> requiresLogin() async {
+    final result = await sqfLiteCurd.get(tableKey: TableKeys.appLockTable);
+    if (result.isEmpty) return false;
+    return result.first['requires_login'] == 1;
   }
 }

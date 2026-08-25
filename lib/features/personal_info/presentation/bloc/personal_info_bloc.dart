@@ -23,6 +23,15 @@ class PersonalInfoBloc extends Bloc<PersonalInfoEvents, PersonalInfoStates> {
     try {
       emit(GetProfileImageState(status: Status.loading));
       XFile? imagePath = await useCases.pickImageCall(source: event.source);
+      if (imagePath == null) {
+        emit(
+          GetProfileImageState(
+            status: Status.error,
+            message: 'No image selected',
+          ),
+        );
+        return;
+      }
       emit(GetProfileImageState(status: Status.success, imagePath: imagePath));
     } catch (e) {
       emit(GetProfileImageState(status: Status.error, message: e.toString()));

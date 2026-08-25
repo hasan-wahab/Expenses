@@ -1,3 +1,4 @@
+import 'package:expense_app/core/constant/app_currency.dart';
 import 'package:expense_app/core/constant/const_text/monthly_summary_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
@@ -55,7 +56,7 @@ class MonthlyTotalExpenseCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: .spaceBetween,
                       children: [
-                        ExtraLargeText(text: totalExpense.toString()),
+                        ExtraLargeText(text: AppCurrency.format(totalExpense)),
                         // Container(
                         //   height: 22.h,
                         //   padding: .symmetric(horizontal: 8.r),

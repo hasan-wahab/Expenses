@@ -25,7 +25,11 @@ class AddExpenseUseCases {
     return categories;
   }
 
-  Future addNewExpenseCall({required ExpenseEntity entityModel}) async {
+  Future addNewExpenseCall({
+    required ExpenseEntity entityModel,
+    String? propertyOwnerUid,
+    bool isSharedWithMe = false,
+  }) async {
     final receiptPath = (entityModel.receiptImage == null ||
             entityModel.receiptImage!.isEmpty)
         ? ''
@@ -33,8 +37,14 @@ class AddExpenseUseCases {
 
     await expensesRepo.addNewExpense(
       model: ExpenseModel.fromEntity(
-        entityModel.copyWith(receiptImage: receiptPath),
+        entityModel.copyWith(
+          receiptImage: receiptPath,
+          propertyOwnerId: isSharedWithMe ? propertyOwnerUid : '',
+          isSharedWithMe: isSharedWithMe,
+        ),
       ),
+      propertyOwnerUid: propertyOwnerUid,
+      isSharedWithMe: isSharedWithMe,
     );
   }
 

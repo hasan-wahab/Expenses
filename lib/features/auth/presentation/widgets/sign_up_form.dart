@@ -8,6 +8,7 @@ import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_events.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_states.dart';
 import 'package:expense_app/features/auth/presentation/widgets/devider_row.dart';
+import 'package:expense_app/features/widgets/app_checkbox.dart';
 import 'package:expense_app/features/widgets/app_t_field.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
@@ -52,17 +53,15 @@ class _SignUpFormState extends State<SignUpForm> {
               context.showCustomLoading();
             }
             if (state.status == Status.error) {
-              if (context.canPop()) {
-                context.pop();
-              }
+              context.hideCustomLoading();
               context.showSnackBar(state.message);
             }
             if (state.status == Status.success) {
+              context.hideCustomLoading();
               [usernameCtr, emailCtr, passwordCtr, cPasswordCtr].resetAll();
               isAgree = false;
-              Navigator.of(context, rootNavigator: true).pop();
-              context.showSnackBar(state.message);
-              context.go(RoutesName.login);
+              context.showSnackBar('Account created. Please login.');
+              context.go(RoutesName.login, extra: true);
             }
             if (state.status == Status.initial) {
               isAgree = state.isAgree;
@@ -106,11 +105,11 @@ class _SignUpFormState extends State<SignUpForm> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisSize: .max,
                     children: [
-                      Checkbox(
+                      AppCheckbox(
                         value: isAgree,
                         onChanged: (value) {
                           context.read<AuthBloc>().add(
-                            OnAgreeEvent(isAgree: value!),
+                            OnAgreeEvent(isAgree: value),
                           );
                         },
                       ),

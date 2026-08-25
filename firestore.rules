@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /// Never read missing fields with data.ownerId — that errors and denies the write.
+    function ownerIdOf(data) {
+      return data.get('ownerId', '');
+    }
+
+    function isOwner(data) {
+      return isSignedIn() && ownerIdOf(data) == request.auth.uid;
+    }
+
+    function memberIds(data) {
+      let ids = data.get('memberIds', []);
+      return ids is list ? ids : [];
+    }
+
+    function memberPerms(data) {
+      let perms = data.get('memberPermissions', {});
+      return perms is map ? perms.get(request.auth.uid, []) : [];
+    }
+
+    function isMember(data) {
+      return isSignedIn() && request.auth.uid in memberIds(data);
+    }
+
+    function can(data, perm) {
+      return isOwner(data)
+        || (isMember(data) && perm in memberPerms(data));
+    }
+
+    function shareFieldsUnchanged() {
+      return request.resource.data.get('ownerId', '')
+          == resource.data.get('ownerId', '')
+        && request.resource.data.get('ownerEmail', '')
+          == resource.data.get('ownerEmail', '')
+        && request.resource.data.get('members', [])
+          == resource.data.get('members', [])
+        && request.resource.data.get('memberIds', [])
+          == resource.data.get('memberIds', [])
+        && request.resource.data.get('memberPermissions', {})
+          == resource.data.get('memberPermissions', {});
+    }
+
+    /// Doc id is {uid}_{cardId}. Avoid regex — uid chars can break matches().
+    function docOwnedByUser(propertyId) {
+      return isSignedIn()
+        && propertyId.size() > request.auth.uid.size()
+        && propertyId[0:request.auth.uid.size()] == request.auth.uid
+        && propertyId[request.auth.uid.size():request.auth.uid.size()+1] == '_';
+    }
+
+    /// Owner sync/create: they set ownerId to themselves on their own doc.
+    function isOwnerWrite(propertyId) {
+      return docOwnedByUser(propertyId)
+        && request.resource.data.get('ownerId', '') == request.auth.uid
+        && (
+          ownerIdOf(resource.data) == request.auth.uid
+          || ownerIdOf(resource.data) == ''
+        );
+    }
+
+    function propertyData(propertyId) {
+      return get(/databases/$(database)/documents/Expenseo/Data/Properties/$(propertyId)).data;
+    }
+
+    match /Expenseo/Data/Users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId;
+      allow delete: if isSignedIn()
+        && request.auth.uid == userId;
+    }
+
+    match /Expenseo/Data/Properties/{propertyId} {
+      allow read: if isOwner(resource.data) || isMember(resource.data);
+
+      allow create: if isSignedIn()
+        && request.resource.data.get('ownerId', '') == request.auth.uid
+        && docOwnedByUser(propertyId);
+
+      allow update: if isOwnerWrite(propertyId)
+        || (can(resource.data, 'edit') && shareFieldsUnchanged());
+
+      allow delete: if isOwner(resource.data)
+        || can(resource.data, 'deleteProperty');
+    }
+
+    match /Expenseo/Data/Expenses/{expenseId} {
+      allow read: if can(propertyData(resource.data.propertyId), 'viewSummary');
+
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasAll(['propertyId', 'ownerId'])
+        && can(propertyData(request.resource.data.propertyId), 'addExpense');
+
+      allow update: if isOwner(resource.data);
+
+      allow delete: if isOwner(resource.data)
+        || can(propertyData(resource.data.propertyId), 'deleteProperty');
+    }
+
+    match /Expenseo/Data/Property/{email}/{document=**} {
+      allow read, write: if isSignedIn()
+        && request.auth.token.email.lower() == email.lower();
+    }
+  }
+}

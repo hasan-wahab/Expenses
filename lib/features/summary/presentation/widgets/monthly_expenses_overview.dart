@@ -1,3 +1,4 @@
+import 'package:expense_app/core/constant/app_currency.dart';
 import 'package:expense_app/core/constant/const_text/monthly_summary_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
@@ -95,7 +96,7 @@ class CharLayoutBuilder extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ExtraSmallText(text: data.amount.toString()),
+                  ExtraSmallText(text: AppCurrency.format(data.amount)),
                   SizedBox(height: 6.h),
                   Container(
                     height: barHeight < 5 ? 5 : barHeight, // 🔥 min height

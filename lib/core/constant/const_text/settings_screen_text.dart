@@ -6,7 +6,7 @@ class SettingsScreenText {
   static String get personalInfo => 'Personal Information';
   static String get notif => 'Notifications';
   static String get currency => 'Currency';
-  static String get currencyValue => 'Rs. PKR';
+  static String get currencyValue => 'PKR';
   static String get exportPdf => 'Export Reports (PDF)';
   static String get logout => 'Logout';
   static String get finger => 'Login with Fingerprint';

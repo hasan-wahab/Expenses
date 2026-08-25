@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:expense_app/core/constant/app_currency.dart';
 import 'package:expense_app/core/constant/const_text/dashboard_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
+import 'package:expense_app/features/share_property/domain/share_permission_item.dart';
+import 'package:expense_app/features/widgets/extra_small_text.dart';
 
 import 'package:expense_app/features/widgets/secondery_text.dart';
 import 'package:expense_app/features/widgets/small_text.dart';
@@ -25,7 +28,12 @@ class HomeCard extends StatelessWidget {
   Future<void> _onAddExpense(BuildContext context) async {
     final result = await context.push(
       RoutesName.addExpenseScreen,
-      extra: entity.cardId.toString(),
+      extra: AddExpenseArgs(
+        propertyCardId: entity.cardId.toString(),
+        propertyOwnerId: entity.ownerId,
+        isSharedWithMe: entity.isSharedWithMe,
+        propertyName: entity.propertyName,
+      ),
     );
     if (result == true) {
       if (!context.mounted) return;
@@ -34,12 +42,28 @@ class HomeCard extends StatelessWidget {
   }
 
   void _onViewSummary(BuildContext context) {
-    context.push(RoutesName.monthlySummary, extra: entity.cardId);
+    context.push(
+      RoutesName.monthlySummary,
+      extra: SummaryArgs(
+        propertyCardId: entity.cardId,
+        propertyOwnerId: entity.ownerId,
+        isSharedWithMe: entity.isSharedWithMe,
+        monthlyBudget: entity.monthlyBudget,
+        canAddExpense: entity.hasPermission(SharePermissionItem.addExpense),
+        propertyName: entity.propertyName,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isOverBudget = (entity.progress ?? 0) >= 100;
+    final showShare = entity.isOwner;
+    final showEdit = entity.hasPermission(SharePermissionItem.edit);
+    final showDelete = entity.hasPermission(SharePermissionItem.deleteProperty);
+    final showMenu = showShare || showEdit || showDelete;
+    final canViewSummary = entity.hasPermission(SharePermissionItem.viewSummary);
+    final canAddExpense = entity.hasPermission(SharePermissionItem.addExpense);
 
     return SizedBox(
       width: 350.w,
@@ -76,15 +100,7 @@ class HomeCard extends StatelessWidget {
                         width: 72.w,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12.r),
-                          child: entity.imageUrl != ''
-                              ? Image.file(
-                                  File(entity.imageUrl),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(Icons.image);
-                                  },
-                                )
-                              : const Icon(Icons.image),
+                          child: _propertyImage(entity.imageUrl),
                         ),
                       ),
                     ),
@@ -93,7 +109,35 @@ class HomeCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SecondaryText(text: entity.propertyName),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SecondaryText(text: entity.propertyName),
+                              ),
+                              if (entity.isSharedWithMe) ...[
+                                SizedBox(width: 6.w),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.w,
+                                    vertical: 2.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20.r),
+                                  ),
+                                  child: ExtraSmallText(
+                                    text: DashboardText.sharedBadge,
+                                    style: context.extraSmallText!.copyWith(
+                                      color: AppColors.primaryDark,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                           SizedBox(height: 4.h),
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -101,7 +145,7 @@ class HomeCard extends StatelessWidget {
                               Icon(
                                 Icons.location_on_outlined,
                                 size: 16.r,
-                                color: AppColors.iconsColor,
+                                color: context.iconColor,
                               ),
                               SizedBox(width: 2.w),
                               Flexible(
@@ -112,69 +156,102 @@ class HomeCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Card(
-                      margin: EdgeInsets.zero,
-                      child: PopupMenuButton<String>(
-                        surfaceTintColor: AppColors.primary,
-                        borderRadius: BorderRadius.circular(12.r),
-                        icon: const Icon(Icons.more_vert),
-                        onSelected: (value) async {
-                          switch (value) {
-                            case 'edit':
-                              final result = await context.push(
-                                RoutesName.addPropertyScreen,
-                                extra: AppPropertyArgs(
-                                  mode: AddPropertyMode.update,
-                                  cardEntity: entity,
-                                ),
-                              );
-                              if (result == true) {
+                    if (showMenu)
+                      Card(
+                        margin: EdgeInsets.zero,
+                        child: PopupMenuButton<String>(
+                          surfaceTintColor: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12.r),
+                          icon: const Icon(Icons.more_vert),
+                          onSelected: (value) async {
+                            switch (value) {
+                              case 'shareFriend':
+                                await context.push(
+                                  RoutesName.sharePropertyScreen,
+                                  extra: SharePropertyArgs(cardEntity: entity),
+                                );
                                 if (!context.mounted) return;
                                 context.read<DashboardBloc>().add(
                                   GetPropertiesEvent(),
                                 );
-                              }
-                              break;
-                            case 'delete':
-                              context.showConfirmationDialog(
-                                onYesPressed: () =>
-                                    context.read<DashboardBloc>().add(
-                                      DeletePropertyEvent(
-                                        propertyEntity: entity.copyWith(
-                                          isDeleted: true,
+                                break;
+                              case 'edit':
+                                final result = await context.push(
+                                  RoutesName.addPropertyScreen,
+                                  extra: AppPropertyArgs(
+                                    mode: AddPropertyMode.update,
+                                    cardEntity: entity,
+                                  ),
+                                );
+                                if (result == true) {
+                                  if (!context.mounted) return;
+                                  context.read<DashboardBloc>().add(
+                                    GetPropertiesEvent(),
+                                  );
+                                }
+                                break;
+                              case 'delete':
+                                context.showConfirmationDialog(
+                                  onYesPressed: () =>
+                                      context.read<DashboardBloc>().add(
+                                        DeletePropertyEvent(
+                                          propertyEntity: entity.copyWith(
+                                            isDeleted: true,
+                                          ),
                                         ),
                                       ),
+                                  message:
+                                      'Are you sure you want to delete this property "${entity.propertyName}"?',
+                                );
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            if (showShare)
+                              PopupMenuItem(
+                                value: 'shareFriend',
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text('Share with friend'),
+                                    Icon(
+                                      Icons.person_add_alt_1_outlined,
+                                      size: 18.r,
                                     ),
-                                message:
-                                    'Are you sure you want to delete this property "${entity.propertyName}"?',
-                              );
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Edit'),
-                                Icon(Icons.arrow_forward_ios, size: 15.r),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Delete'),
-                                Icon(Icons.arrow_forward_ios, size: 15.r),
-                              ],
-                            ),
-                          ),
-                        ],
+                                  ],
+                                ),
+                              ),
+                            if (showShare) const PopupMenuDivider(),
+                            if (entity.hasPermission(SharePermissionItem.edit))
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text('Edit'),
+                                    Icon(Icons.arrow_forward_ios, size: 15.r),
+                                  ],
+                                ),
+                              ),
+                            if (entity.hasPermission(
+                              SharePermissionItem.deleteProperty,
+                            ))
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text('Delete'),
+                                    Icon(Icons.arrow_forward_ios, size: 15.r),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -188,7 +265,7 @@ class HomeCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   SecondaryText(
-                    text: entity.monthlyExpenses.toString(),
+                    text: AppCurrency.format(entity.monthlyExpenses),
                     style: context.secondaryText!.copyWith(
                       color: isOverBudget
                           ? AppColors.redColor
@@ -200,7 +277,11 @@ class HomeCard extends StatelessWidget {
                         ? context.smallText!.copyWith(color: AppColors.redColor)
                         : null,
                     text:
-                        DashboardText.budget + entity.monthlyBudget.toString(),
+                        DashboardText.budgetPrefix +
+                        (entity.monthlyBudget ==
+                                entity.monthlyBudget.roundToDouble()
+                            ? entity.monthlyBudget.toInt().toString()
+                            : entity.monthlyBudget.toString()),
                   ),
                 ],
               ),
@@ -224,7 +305,7 @@ class HomeCard extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.warning_amber,
-                          color: AppColors.redColor,
+                          color: context.iconError,
                           size: 16.r,
                         ),
                         SizedBox(width: 4.w),
@@ -262,23 +343,25 @@ class HomeCard extends StatelessWidget {
               /// Actions
               Row(
                 children: [
-                  Expanded(
-                    child: _HomeCardActionButton(
-                      label: DashboardText.viewSummary,
-                      icon: Icons.bar_chart_rounded,
-                      isPrimary: false,
-                      onTap: () => _onViewSummary(context),
+                  if (canViewSummary)
+                    Expanded(
+                      child: _HomeCardActionButton(
+                        label: DashboardText.viewSummary,
+                        icon: Icons.bar_chart_rounded,
+                        isPrimary: false,
+                        onTap: () => _onViewSummary(context),
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: _HomeCardActionButton(
-                      label: DashboardText.addExpense,
-                      icon: Icons.add_rounded,
-                      isPrimary: true,
-                      onTap: () => _onAddExpense(context),
+                  if (canViewSummary && canAddExpense) SizedBox(width: 10.w),
+                  if (canAddExpense)
+                    Expanded(
+                      child: _HomeCardActionButton(
+                        label: DashboardText.addExpense,
+                        icon: Icons.add_rounded,
+                        isPrimary: true,
+                        onTap: () => _onAddExpense(context),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
@@ -286,6 +369,22 @@ class HomeCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _propertyImage(String imageUrl) {
+    final hasLocalImage = imageUrl.isNotEmpty && File(imageUrl).existsSync();
+    if (hasLocalImage) {
+      return Image.file(
+        File(imageUrl),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _appLogoFallback(),
+      );
+    }
+    return _appLogoFallback();
+  }
+
+  Widget _appLogoFallback() {
+    return Image.asset('assets/images/app_logo.png', fit: BoxFit.cover);
   }
 }
 
@@ -329,7 +428,7 @@ class _HomeCardActionButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 16.r,
-                color: isPrimary ? AppColors.white : AppColors.primaryDark,
+                color: isPrimary ? context.iconOnPrimary : context.colors.secondary,
               ),
               SizedBox(width: 6.w),
               Flexible(

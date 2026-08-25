@@ -29,3 +29,16 @@ class SingUpStatusStates extends AuthStates {
     this.isAgree = false,
   });
 }
+
+class EmailVerificationState extends AuthStates {
+  final Status status;
+  final String message;
+  final bool isVerified;
+
+  EmailVerificationState({
+    required this.status,
+    this.message = '',
+    this.isVerified = false,
+  });
+}
+

@@ -1,3 +1,4 @@
+import 'package:expense_app/core/constant/app_currency.dart';
 import 'package:expense_app/core/constant/const_text/monthly_summary_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
@@ -115,8 +116,9 @@ class ListTileLayout extends StatelessWidget {
                               ),
                             ),
                             ExtraSmallText(
-                              text:
-                                  'Rs. ${categoryBreakdown[index].totalAmount}',
+                              text: AppCurrency.format(
+                                categoryBreakdown[index].totalAmount,
+                              ),
                             ),
                           ],
                         ),
@@ -134,7 +136,7 @@ class ListTileLayout extends StatelessWidget {
                   /// List Tile Trailing
                   Icon(
                     Icons.arrow_forward_ios_outlined,
-                    color: AppColors.primary,
+                    color: context.iconAccent,
                   ),
                 ],
               ),
