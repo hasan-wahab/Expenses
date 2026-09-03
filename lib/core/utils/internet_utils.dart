@@ -1,30 +1,17 @@
-import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class InternetUtils {
-  /// Check network (WiFi / Mobile Data)
+  static bool _hasLink(List<ConnectivityResult> results) {
+    return results.any((r) => r != ConnectivityResult.none);
+  }
+
   static Future<bool> isConnected() async {
     final result = await Connectivity().checkConnectivity();
-
-    return result != ConnectivityResult.none;
+    return _hasLink(result);
   }
 
-  /// Real internet check (recommended)
-  static Future<bool> hasInternetAccess() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
+  /// WiFi / mobile data on hai. DNS lookup nahi — wo false "no internet" deta hai.
+  static Future<bool> hasInternetAccess() => isConnected();
 
-  /// Combined check (BEST for apps)
-  static Future<bool> isInternetAvailable() async {
-    final network = await isConnected();
-    if (!network) return false;
-
-    final realInternet = await hasInternetAccess();
-    return realInternet;
-  }
+  static Future<bool> isInternetAvailable() => isConnected();
 }

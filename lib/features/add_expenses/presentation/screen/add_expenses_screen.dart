@@ -153,7 +153,11 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
             }
           }
           if (state is SaveExpensesState) {
+            if (state.status == Status.loading) {
+              context.showCustomLoading();
+            }
             if (state.status == Status.success) {
+              context.hideCustomLoading();
               _resetForm();
               setState(() {});
               context.showSnackBar('Expense Added Successfully');
@@ -162,6 +166,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
               }
             }
             if (state.status == Status.error) {
+              context.hideCustomLoading();
               context.showSnackBar(state.message!, isError: true);
             }
           }
@@ -196,11 +201,7 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
               ),
               body: SafeArea(
                 top: false,
-                child: !_propertiesLoaded ||
-                        (state is SaveExpensesState &&
-                            state.status == Status.loading) ||
-                        (state is PickReceiptImageState &&
-                            state.status == Status.loading)
+                child: !_propertiesLoaded
                     ? AppShimmer.form()
                     : dashboardCardList.isEmpty
                     ? NoPropertyForExpense(
@@ -264,6 +265,9 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
                           /// Upload Receipt Image --> Optional (before notes)
                           UploadReceiptImage(
                             imagePath: receiptImage,
+                            isLoading:
+                                state is PickReceiptImageState &&
+                                state.status == Status.loading,
                             onTap: () async {
                               final source =
                                   await context.showImageSourcePicker();

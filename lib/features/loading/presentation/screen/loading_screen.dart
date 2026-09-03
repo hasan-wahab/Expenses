@@ -1,4 +1,5 @@
-import 'package:expense_app/features/widgets/app_shimmer.dart';
+import 'package:expense_app/core/constant/themes/themes/colors.dart';
+import 'package:expense_app/features/widgets/app_spinner.dart';
 import 'package:flutter/material.dart';
 
 class LoadingScreen extends StatelessWidget {
@@ -6,8 +7,9 @@ class LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(child: AppShimmer.page()),
+    return const Scaffold(
+      backgroundColor: AppColors.bgColor,
+      body: SafeArea(child: AppSpinner()),
     );
   }
 }

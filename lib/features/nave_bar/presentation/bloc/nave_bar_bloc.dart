@@ -15,5 +15,8 @@ class NaveBarBloc extends Bloc<NaveBarEvents, NaveBarStates> {
         ),
       ),
     );
+    on<NaveBarSyncHomeEvent>((event, emit) {
+      emit(state.copyWith(homeRefreshKey: state.homeRefreshKey + 1));
+    });
   }
 }

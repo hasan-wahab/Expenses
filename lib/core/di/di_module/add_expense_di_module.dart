@@ -7,8 +7,6 @@ import '../../../features/add_expenses/data/expenses_repo.dart';
 import '../../../features/add_expenses/domain/usescases/add_expense_usecases.dart';
 import '../../../features/add_expenses/presentation/bloc/add_expenses_bloc.dart';
 import '../../../features/dashboard/data/property_repo.dart';
-import '../../data_source/expense_data_source/expense_remote_source.dart';
-import '../../data_source/properties_data_source/properties_remote_source.dart';
 import '../../data_source/properties_data_source/propertis_local_source.dart';
 import '../../storage/sqflite_curd.dart';
 
@@ -26,15 +24,9 @@ class AddExpenseDiModule implements DIModule {
         ),
       )
       ..registerLazySingleton(
-        () => ExpenseRemoteSource(sqfLiteCurd: sl<SqfLiteCurd>()),
-      )
-      ..registerLazySingleton(
         () => ExpensesRepo(
           sqfLiteCurd: sl<SqfLiteCurd>(),
           expenseLocalSource: sl<ExpenseLocalSource>(),
-          propertiesLocalSource: sl<PropertiesLocalSource>(),
-          expenseRemoteSource: sl<ExpenseRemoteSource>(),
-          propertiesRemoteSource: sl<PropertiesRemoteSource>(),
           propertyRepo: sl<PropertyRepo>(),
         ),
       )

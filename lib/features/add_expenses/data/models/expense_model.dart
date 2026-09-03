@@ -1,6 +1,8 @@
 import '../../domain/entitity/add_expense_entity_model.dart';
 
 class ExpenseModel extends ExpenseEntity {
+  final String? createdById;
+
   const ExpenseModel({
     super.id,
     super.propertyCardId,
@@ -16,6 +18,7 @@ class ExpenseModel extends ExpenseEntity {
     super.isDeleted,
     super.propertyOwnerId,
     super.isSharedWithMe = false,
+    this.createdById,
   });
 
   factory ExpenseModel.fromEntity(ExpenseEntity entity) {
@@ -72,13 +75,21 @@ class ExpenseModel extends ExpenseEntity {
       'isDeleted': isDeleted,
       'propertyOwnerId': propertyOwnerId ?? '',
       'isSharedWithMe': isSharedWithMe ? 1 : 0,
+      'createdById': createdById ?? '',
     };
   }
 
   factory ExpenseModel.fromMap(Map<String, dynamic> map) {
+    final creator = (map['createdById']?.toString() ?? '').isNotEmpty
+        ? map['createdById'].toString()
+        : (map['ownerId']?.toString() ?? '');
     return ExpenseModel(
-      id: map['expenseId'],
-      propertyCardId: map['propertyCardId'],
+      id: map['expenseId'] is int
+          ? map['expenseId'] as int
+          : int.tryParse('${map['expenseId'] ?? ''}'),
+      propertyCardId: map['propertyCardId'] is int
+          ? map['propertyCardId'] as int
+          : int.tryParse('${map['propertyCardId'] ?? ''}'),
       title: map['title'],
       amount: (map['amount'] as num?)?.toDouble(),
       categoryType: map['categoryType'],
@@ -88,7 +99,9 @@ class ExpenseModel extends ExpenseEntity {
       createAt: map['createAt'],
       updateAt: map['updateAt'],
       syncStatus: map['syncStatus'],
-      isDeleted: map['isDeleted'],
+      isDeleted: map['isDeleted'] is int
+          ? map['isDeleted'] as int
+          : int.tryParse('${map['isDeleted'] ?? 0}') ?? 0,
       propertyOwnerId: (map['propertyOwnerId']?.toString() ?? '').isEmpty
           ? null
           : map['propertyOwnerId']?.toString(),
@@ -96,6 +109,7 @@ class ExpenseModel extends ExpenseEntity {
           map['isSharedWithMe'] == true ||
           map['isSharedWithMe'] == 1 ||
           map['isSharedWithMe'] == '1',
+      createdById: creator.isEmpty ? null : creator,
     );
   }
 
@@ -120,6 +134,7 @@ class ExpenseModel extends ExpenseEntity {
     int? isDeleted,
     String? propertyOwnerId,
     bool? isSharedWithMe,
+    String? createdById,
   }) {
     return ExpenseModel(
       id: id ?? this.id,
@@ -136,6 +151,7 @@ class ExpenseModel extends ExpenseEntity {
       isDeleted: isDeleted ?? this.isDeleted,
       propertyOwnerId: propertyOwnerId ?? this.propertyOwnerId,
       isSharedWithMe: isSharedWithMe ?? this.isSharedWithMe,
+      createdById: createdById ?? this.createdById,
     );
   }
 }

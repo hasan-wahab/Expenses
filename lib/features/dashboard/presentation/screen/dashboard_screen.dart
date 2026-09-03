@@ -7,6 +7,7 @@ import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_bloc.
 import 'package:expense_app/features/dashboard/presentation/bloc/dashboard_events.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_bloc.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_events.dart';
+import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,59 +32,91 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<DashboardCardEntity> list = [];
+  bool _hasLoadedOnce = false;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<DashboardBloc>()..add(GetPropertiesEvent()),
-      child: BlocConsumer<DashboardBloc, DashboardStates>(
-        listener: (context, state) {
-          if (state is GetProperties) {
-            if (state.status == Status.success) {
-              list = state.propertyList;
-            }
-            if (state.status == Status.error) {
-              context.showSnackBar(state.errorMessage, isError: true);
-            }
-          }
+      child: BlocListener<NaveBarBloc, NaveBarStates>(
+        listenWhen: (previous, current) =>
+            previous.homeRefreshKey != current.homeRefreshKey,
+        listener: (context, _) {
+          context.read<DashboardBloc>().add(GetPropertiesEvent());
         },
-        builder: (context, state) {
-          final loading =
-              state is GetProperties && state.status == Status.loading;
-          return Scaffold(
-            backgroundColor: AppColors.bgColor,
-            appBar: CustomAppBar(
-              title: DashboardText.appBarText,
-              isLeading: false,
-            ),
-            body: loading
-                ? AppShimmer.cards()
-                : list.isEmpty
-                ? NoPropertyAdded(
-                    onPropertyAdded: () {
-                      /// Stay on Home and reload property list after save.
-                      context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
-                      context.read<NaveBarBloc>().add(NaveBarRefreshHomeEvent());
-                    },
-                  )
-                : ListView.builder(
-                    itemCount: list.length,
-                    padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    itemBuilder: (context, index) {
-                      final entity = list[index];
-                      return Padding(
-                        padding: EdgeInsets.only(top: 24.h),
-                        child: HomeCard(
-                          key: ValueKey(
-                            '${entity.ownerId ?? 'local'}_${entity.cardId}',
-                          ),
-                          entity: entity,
-                        ),
-                      );
-                    },
-                  ),
-          );
-        },
+        child: BlocConsumer<DashboardBloc, DashboardStates>(
+          listener: (context, state) {
+            if (state is GetProperties) {
+              if (state.status == Status.success) {
+                list = state.propertyList;
+                _hasLoadedOnce = true;
+              }
+              if (state.status == Status.error) {
+                _hasLoadedOnce = true;
+                context.showSnackBar(state.errorMessage, isError: true);
+              }
+            }
+          },
+          builder: (context, state) {
+            final loading = state is DashboardInitial ||
+                (state is GetProperties && state.status == Status.loading);
+            final showShimmer = loading && !_hasLoadedOnce;
+            return Scaffold(
+              backgroundColor: AppColors.bgColor,
+              appBar: CustomAppBar(
+                title: DashboardText.appBarText,
+                isLeading: false,
+                isLoading: loading && _hasLoadedOnce,
+              ),
+              body: showShimmer
+                  ? AppShimmer.cards()
+                  : RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () async {
+                        context.read<DashboardBloc>().add(
+                          GetPropertiesEvent(),
+                        );
+                      },
+                      child: list.isEmpty
+                          ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height: 480.h,
+                                  child: NoPropertyAdded(
+                                    onPropertyAdded: () {
+                                      context.read<NaveBarBloc>().add(
+                                        NaveBarIndexEvent(index: 0),
+                                      );
+                                      context.read<NaveBarBloc>().add(
+                                        NaveBarRefreshHomeEvent(),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: list.length,
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              itemBuilder: (context, index) {
+                                final entity = list[index];
+                                return Padding(
+                                  padding: EdgeInsets.only(top: 24.h),
+                                  child: HomeCard(
+                                    key: ValueKey(
+                                      '${entity.ownerId ?? 'local'}_${entity.cardId}',
+                                    ),
+                                    entity: entity,
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+            );
+          },
+        ),
       ),
     );
   }

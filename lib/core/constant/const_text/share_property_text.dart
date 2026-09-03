@@ -32,6 +32,8 @@ class SharePropertyText {
   static const String emailNotValid =
       'This email is not valid. No Expenseo user found.';
   static const String cannotShareSelf = 'You cannot share with your own email.';
+  static const String needInternet =
+      'Share needs internet. Connect and try again.';
   static const String shareFailed =
       'Could not share. Check internet and try again.';
   static const String sharing = 'Sharing...';

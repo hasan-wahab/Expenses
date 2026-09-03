@@ -1,6 +1,7 @@
 import 'package:expense_app/core/constant/const_text/personal_information_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
+import 'package:expense_app/features/widgets/app_spinner.dart';
 import 'package:expense_app/features/widgets/extra_small_text.dart';
 import 'package:expense_app/features/widgets/profile_avatar_image.dart';
 import 'package:flutter/material.dart';
@@ -13,12 +14,14 @@ class CircleAvatarWidget extends StatelessWidget {
   final String? imagePath;
   final String? name;
   final PersonalInfoMode mode;
+  final bool isLoading;
   const CircleAvatarWidget({
     super.key,
     required this.onTap,
     this.imagePath,
     this.name,
     required this.mode,
+    this.isLoading = false,
   });
 
   @override
@@ -49,10 +52,16 @@ class CircleAvatarWidget extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12.r),
-                          child: ProfileAvatarImage(
-                            imageUrl: imagePath,
-                            name: name,
-                            fontSize: 48.sp,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              ProfileAvatarImage(
+                                imageUrl: imagePath,
+                                name: name,
+                                fontSize: 48.sp,
+                              ),
+                              AppSpinner.overlay(show: isLoading),
+                            ],
                           ),
                         ),
                       ),

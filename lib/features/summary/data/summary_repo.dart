@@ -1,7 +1,6 @@
+import 'package:expense_app/core/constant/app_key/firebase_paths.dart';
 import 'package:expense_app/core/data_source/expense_data_source/expense_local_source.dart';
-import 'package:expense_app/core/data_source/expense_data_source/expense_remote_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/propertis_local_source.dart';
-import 'package:expense_app/core/utils/internet_utils.dart';
 import 'package:expense_app/features/add_expenses/data/models/expense_model.dart';
 import 'package:expense_app/features/add_expenses/domain/entitity/add_expense_entity_model.dart';
 import 'package:intl/intl.dart';
@@ -12,12 +11,10 @@ import '../domain/repos_inter/summary_repo_inter.dart';
 class SummaryRepo implements SummaryRepoInter {
   ExpenseLocalSource expenseLocalSource;
   PropertiesLocalSource propertiesLocalSource;
-  ExpenseRemoteSource expenseRemoteSource;
 
   SummaryRepo({
     required this.expenseLocalSource,
     required this.propertiesLocalSource,
-    required this.expenseRemoteSource,
   });
 
   @override
@@ -126,39 +123,31 @@ class SummaryRepo implements SummaryRepoInter {
     String? propertyOwnerId,
     bool isSharedWithMe = false,
   }) async {
-    final ownerKey = isSharedWithMe ? (propertyOwnerId ?? '') : '';
-    final local = await expenseLocalSource.getAllExpenses(
-      propertyCardId: propertyCardId.toString(),
-      propertyOwnerId: ownerKey,
-    );
-    if (!isSharedWithMe ||
-        propertyOwnerId == null ||
-        propertyOwnerId.isEmpty) {
-      return local;
-    }
-    if (!await InternetUtils.hasInternetAccess()) return local;
-    try {
-      final remote = await expenseRemoteSource.getAllExpenses(
+    final ownerUid = isSharedWithMe
+        ? (propertyOwnerId ?? '')
+        : (FirebasePaths.currentUid ?? '');
+
+    var local = _forThisCard(
+      await expenseLocalSource.getAllExpenses(
         propertyCardId: propertyCardId.toString(),
-        propertyOwnerUid: propertyOwnerId,
-      );
-      return _mergeExpenses(local, remote);
-    } catch (_) {
-      return local;
-    }
+      ),
+      ownerUid: ownerUid,
+      isSharedWithMe: isSharedWithMe,
+    );
+    return local;
   }
 
-  List<ExpenseModel> _mergeExpenses(
-    List<ExpenseModel> local,
-    List<ExpenseModel> remote,
-  ) {
-    final byId = <dynamic, ExpenseModel>{};
-    for (final item in remote) {
-      byId[item.id] = item;
-    }
-    for (final item in local) {
-      byId[item.id] = item;
-    }
-    return byId.values.toList();
+  List<ExpenseModel> _forThisCard(
+    List<ExpenseModel> expenses, {
+    required String ownerUid,
+    required bool isSharedWithMe,
+  }) {
+    final myUid = FirebasePaths.currentUid ?? '';
+    return expenses.where((item) {
+      if (item.isDeleted == 1) return false;
+      final expOwner = item.propertyOwnerId ?? '';
+      if (isSharedWithMe) return expOwner == ownerUid;
+      return expOwner.isEmpty || expOwner == ownerUid || expOwner == myUid;
+    }).toList();
   }
 }

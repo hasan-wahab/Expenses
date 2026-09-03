@@ -21,7 +21,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constant/enums.dart';
 import '../../../../core/di/get_it.dart';
 import '../../../../core/extensions/text_controller_extension.dart';
-import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import '../../../widgets/priamary_butn.dart';
 import '../bloc/add_property_event.dart';
@@ -109,137 +108,137 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           }
         },
         builder: (context, state) {
-          final loading =
-              (state is PickImageState && state.status == Status.loading) ||
-              (state is GetAddedPropertyCardState &&
-                  state.status == Status.loading);
+          final saving = state is GetAddedPropertyCardState &&
+              state.status == Status.loading;
           return Scaffold(
             backgroundColor: AppColors.bgColor,
-            appBar: CustomAppBar(title: 'Add Property Card', isLeading: true),
+            appBar: CustomAppBar(
+              title: 'Add Property Card',
+              isLeading: true,
+              isLoading: saving,
+            ),
             body: SafeArea(
               top: false,
-              child: loading
-                  ? AppShimmer.form()
-                  : ListView(
-                      padding: .symmetric(horizontal: 20.w),
-                      children: [
-                        SizedBox(height: 24.h),
+              child: ListView(
+                padding: .symmetric(horizontal: 20.w),
+                children: [
+                  SizedBox(height: 24.h),
 
-                        /// Pick Image Container of the Property
-                        CardPickImage(
-                          imagePath: image,
-                          onTap: () async {
-                            final source = await context
-                                .showImageSourcePicker();
-                            if (source == null || !context.mounted) return;
-                            context.read<AddPropertyBloc>().add(
-                              OnPickImageEvent(imageSource: source),
-                            );
-                          },
+                  /// Pick Image Container of the Property
+                  CardPickImage(
+                    imagePath: image,
+                    isLoading:
+                        state is PickImageState &&
+                        state.status == Status.loading,
+                    onTap: () async {
+                      final source = await context.showImageSourcePicker();
+                      if (source == null || !context.mounted) return;
+                      context.read<AddPropertyBloc>().add(
+                        OnPickImageEvent(imageSource: source),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 24.h),
+
+                  /// Property Name Field
+                  AppTField(
+                    controller: propertyNameController,
+                    startIcon: Icons.home_filled,
+                    hintText: 'Property Name...',
+                    labelText: 'Property Name',
+                  ),
+                  SizedBox(height: 24.h),
+
+                  /// Category Type Field
+                  CategoryDropdown(
+                    initialValue: propertyType,
+                    selectedItem: ValueNotifier(propertyType),
+                    onChange: (value) {
+                      propertyType = value;
+                      print(propertyType);
+                    },
+                  ),
+                  SizedBox(height: 24.h),
+
+                  /// Property Location Field
+                  AppTField(
+                    controller: propertyLocationController,
+                    startIcon: Icons.location_on,
+                    hintText: 'Property Location...',
+                    labelText: 'Property Location',
+                  ),
+                  SizedBox(height: 24.h),
+
+                  /// Target Budget Field
+                  AppTField(
+                    controller: targetBudgetController,
+                    keyboardType: TextInputType.number,
+                    startText: AppCurrency.symbol,
+                    hintText: 'Target Budget...',
+                    labelText: 'Target Budget (PKR)',
+                  ),
+                  SizedBox(height: 24.h),
+
+                  /// Save Button
+                  PrimaryButton(
+                    text: widget.mode == AddPropertyMode.update
+                        ? 'Update Property'
+                        : 'Save Property',
+                    onTap: () {
+                      if (saving) return;
+                      final model = DashboardCardEntity(
+                        cardId: DateTime.now().microsecondsSinceEpoch,
+                        propertyName: propertyNameController.text,
+                        monthlyBudget: double.parse(
+                          targetBudgetController.text,
                         ),
-                        SizedBox(height: 24.h),
+                        propertyLocation: propertyLocationController.text,
+                        imageUrl: image?.path != null ? image!.path : '',
+                        syncStatus: SyncStatus.pending,
+                        createAt: DateTime.now().toString(),
+                        categoryType: propertyType,
+                      );
+                      if (widget.mode == AddPropertyMode.add) {
+                        context.read<AddPropertyBloc>().add(
+                          OnAddPropertyCardEvent(model: model),
+                        );
+                      } else {
+                        final targetBudget = double.parse(
+                          targetBudgetController.text,
+                        );
+                        final percent =
+                            (widget.cardEntity!.monthlyExpenses! /
+                                targetBudget) *
+                            100;
 
-                        /// Property Name Field
-                        AppTField(
-                          controller: propertyNameController,
-                          startIcon: Icons.home_filled,
-                          hintText: 'Property Name...',
-                          labelText: 'Property Name',
-                        ),
-                        SizedBox(height: 24.h),
-
-                        /// Category Type Field
-                        CategoryDropdown(
-                          initialValue: propertyType,
-                          selectedItem: ValueNotifier(propertyType),
-                          onChange: (value) {
-                            propertyType = value;
-                            print(propertyType);
-                          },
-                        ),
-                        SizedBox(height: 24.h),
-
-                        /// Property Location Field
-                        AppTField(
-                          controller: propertyLocationController,
-                          startIcon: Icons.location_on,
-                          hintText: 'Property Location...',
-                          labelText: 'Property Location',
-                        ),
-                        SizedBox(height: 24.h),
-
-                        /// Target Budget Field
-                        AppTField(
-                          controller: targetBudgetController,
-                          keyboardType: TextInputType.number,
-                          startText: AppCurrency.symbol,
-                          hintText: 'Target Budget...',
-                          labelText: 'Target Budget (PKR)',
-                        ),
-                        SizedBox(height: 24.h),
-
-                        /// Save Button
-                        PrimaryButton(
-                          text: widget.mode == AddPropertyMode.update
-                              ? 'Update Property'
-                              : 'Save Property',
-                          onTap: () {
-                            final model = DashboardCardEntity(
-                              cardId: DateTime.now().microsecondsSinceEpoch,
-                              propertyName: propertyNameController.text,
-                              monthlyBudget: double.parse(
-                                targetBudgetController.text,
-                              ),
-                              propertyLocation: propertyLocationController.text,
-                              imageUrl: image?.path != null ? image!.path : '',
+                        context.read<AddPropertyBloc>().add(
+                          OnUpdatePropertyCardEvent(
+                            model: model.copyWith(
+                              cardId: widget.cardEntity!.cardId,
+                              updateAt: DateTime.now().toString(),
+                              createAt: widget.cardEntity!.createAt,
+                              monthlyExpenses:
+                                  widget.cardEntity!.monthlyExpenses,
+                              monthlyBudget: targetBudget,
+                              progress: percent,
+                              isDeleted: widget.cardEntity!.isDeleted,
                               syncStatus: SyncStatus.pending,
-                              createAt: DateTime.now().toString(),
+                              imageUrl: widget.cardEntity!.imageUrl,
                               categoryType: propertyType,
-                            );
-                            if (widget.mode == AddPropertyMode.add) {
-                              context.read<AddPropertyBloc>().add(
-                                OnAddPropertyCardEvent(model: model),
-                              );
-                            } else {
-                              final targetBudget = double.parse(
-                                targetBudgetController.text,
-                              );
-                              final percent =
-                                  (widget.cardEntity!.monthlyExpenses! /
-                                      targetBudget) *
-                                  100;
-
-                              context.read<AddPropertyBloc>().add(
-                                OnUpdatePropertyCardEvent(
-                                  model: model.copyWith(
-                                    cardId: widget.cardEntity!.cardId,
-                                    updateAt: DateTime.now().toString(),
-                                    createAt: widget.cardEntity!.createAt,
-                                    monthlyExpenses:
-                                        widget.cardEntity!.monthlyExpenses,
-                                    monthlyBudget: targetBudget,
-                                    progress: percent,
-                                    isDeleted: widget.cardEntity!.isDeleted,
-                                    syncStatus: SyncStatus.pending,
-                                    imageUrl: widget.cardEntity!.imageUrl,
-                                    categoryType: propertyType,
-                                    propertyName: propertyNameController.text,
-                                    propertyLocation:
-                                        propertyLocationController.text,
-                                    ownerId: widget.cardEntity!.ownerId,
-                                    ownerEmail: widget.cardEntity!.ownerEmail,
-                                    isSharedWithMe:
-                                        widget.cardEntity!.isSharedWithMe,
-                                    myPermissions:
-                                        widget.cardEntity!.myPermissions,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
+                              propertyName: propertyNameController.text,
+                              propertyLocation: propertyLocationController.text,
+                              ownerId: widget.cardEntity!.ownerId,
+                              ownerEmail: widget.cardEntity!.ownerEmail,
+                              isSharedWithMe: widget.cardEntity!.isSharedWithMe,
+                              myPermissions: widget.cardEntity!.myPermissions,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           );
         },

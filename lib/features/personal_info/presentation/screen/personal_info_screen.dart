@@ -5,7 +5,6 @@ import 'package:expense_app/features/personal_info/presentation/bloc/personal_in
 import 'package:expense_app/features/personal_info/presentation/bloc/personal_info_states.dart';
 import 'package:expense_app/features/personal_info/presentation/widget/personal_info_form.dart';
 import 'package:expense_app/features/settings/domain/entitity/settings_entity.dart';
-import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:flutter/material.dart';
@@ -70,23 +69,23 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
             }
           }
           if (state is UpdatePersonalInfoState) {
+            if (state.status == Status.loading) {
+              context.showCustomLoading();
+            }
             if (state.status == Status.success) {
+              context.hideCustomLoading();
               [nameController, emailController, phoneController].resetAll();
               image = null;
               context.showSnackBar(state.message!);
               context.pop(true);
             }
             if (state.status == Status.error) {
+              context.hideCustomLoading();
               context.showSnackBar(state.message!, isError: true);
             }
           }
         },
         builder: (context, state) {
-          final loading =
-              (state is GetProfileImageState &&
-                  state.status == Status.loading) ||
-              (state is UpdatePersonalInfoState &&
-                  state.status == Status.loading);
           return Scaffold(
             appBar: CustomAppBar(
               title: PersonalInformationText.appBarText,
@@ -94,9 +93,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
             ),
             body: SafeArea(
               top: false,
-              child: loading
-                  ? AppShimmer.form()
-                  : ListView(
+              child: ListView(
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 children: [
                   SizedBox(height: 24.h),
@@ -107,6 +104,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     name: nameController.text.orEmpty.isNotEmpty
                         ? nameController.text
                         : widget.entityModel.email.orEmpty,
+                    isLoading:
+                        state is GetProfileImageState &&
+                        state.status == Status.loading,
                     onTap: () async {
                       final source = await context.showImageSourcePicker();
                       if (source == null || !context.mounted) return;

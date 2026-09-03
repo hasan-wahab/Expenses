@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:expense_app/core/constant/enums.dart';
+import 'package:expense_app/core/di/get_it.dart';
 import 'package:expense_app/features/add_expenses/domain/usescases/add_expense_usecases.dart';
 import 'package:expense_app/features/add_expenses/presentation/bloc/add_expenses_event.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
+import 'package:expense_app/features/sync_data/domain/usescases/sync_data_use_cases.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'add_expenses_states.dart';
@@ -49,6 +51,7 @@ class AddExpensesBloc extends Bloc<AddExpensesEvent, AddExpensesStates> {
         propertyOwnerUid: event.propertyOwnerUid,
         isSharedWithMe: event.isSharedWithMe,
       );
+      unawaited(sl<SyncDataUseCases>().startBackgroundSync());
 
       emit(SaveExpensesState(status: Status.success));
     } catch (e) {

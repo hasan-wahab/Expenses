@@ -1,3 +1,4 @@
+import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -48,14 +49,18 @@ class AppShimmer extends StatefulWidget {
     );
   }
 
-  static Widget cards({int count = 4}) {
-    return _page(
-      child: ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
-        itemCount: count,
-        itemBuilder: (_, index) => Padding(
-          padding: EdgeInsets.only(bottom: 16.h),
-          child: bone(width: double.infinity, height: 168.h, radius: 16),
+  static Widget cards({int count = 3}) {
+    return ColoredBox(
+      color: AppColors.bgColor,
+      child: AppShimmer(
+        child: ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          itemCount: count,
+          itemBuilder: (_, index) => Padding(
+            padding: EdgeInsets.only(top: 24.h),
+            child: const _HomeCardShimmer(),
+          ),
         ),
       ),
     );
@@ -312,6 +317,123 @@ class AppShimmerBone extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Same layout as HomeCard: image, title, spend, progress, actions.
+class _HomeCardShimmer extends StatelessWidget {
+  const _HomeCardShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 350.w,
+      child: Card(
+        surfaceTintColor: AppColors.primaryDark,
+        borderOnForeground: true,
+        margin: EdgeInsets.zero,
+        shadowColor: AppColors.iconsColor,
+        color: AppColors.bgColor,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 14.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 72.h,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppShimmerBone(
+                      width: 72.w,
+                      height: 72.h,
+                      borderRadius: 12,
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppShimmerBone(
+                            width: 140.w,
+                            height: 16.h,
+                            borderRadius: 6,
+                          ),
+                          SizedBox(height: 8.h),
+                          AppShimmerBone(
+                            width: 110.w,
+                            height: 12.h,
+                            borderRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                    AppShimmerBone(
+                      width: 32.w,
+                      height: 32.h,
+                      borderRadius: 8,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 14.h),
+              AppShimmerBone(width: 88.w, height: 12.h, borderRadius: 6),
+              SizedBox(height: 8.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppShimmerBone(width: 96.w, height: 18.h, borderRadius: 6),
+                  AppShimmerBone(width: 72.w, height: 12.h, borderRadius: 6),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              AppShimmerBone(
+                width: double.infinity,
+                height: 10.h,
+                borderRadius: 10,
+              ),
+              SizedBox(height: 8.h),
+              Align(
+                alignment: Alignment.centerRight,
+                child: AppShimmerBone(
+                  width: 36.w,
+                  height: 12.h,
+                  borderRadius: 6,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Divider(
+                height: 1.h,
+                thickness: 1,
+                color: AppColors.primary.withValues(alpha: 0.12),
+              ),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppShimmerBone(
+                      width: double.infinity,
+                      height: 40.h,
+                      borderRadius: 10,
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: AppShimmerBone(
+                      width: double.infinity,
+                      height: 40.h,
+                      borderRadius: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

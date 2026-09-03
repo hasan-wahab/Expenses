@@ -1,7 +1,8 @@
+import 'package:expense_app/core/constant/app_key/firebase_paths.dart';
+import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/core/data_source/expense_data_source/expense_local_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/properties_remote_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/propertis_local_source.dart';
-import 'package:expense_app/core/utils/internet_utils.dart';
 import 'package:expense_app/features/dashboard/data/models/property_card_model.dart';
 import 'package:expense_app/features/dashboard/domain/repos_inter/property_repo_inter.dart';
 
@@ -20,14 +21,19 @@ class PropertyRepo implements PropertyRepoInter {
   Future<dynamic> save({required PropertyModel model}) async {
     String currentUserEmail = await propertiesLocalSource.getCurrentUserEmail();
     await propertiesLocalSource.addNewProperty(
-      model: model,
+      model: model.copyWith(
+        ownerId: (model.ownerId ?? '').isNotEmpty
+            ? model.ownerId
+            : FirebasePaths.currentUid,
+        syncStatus: model.syncStatus ?? SyncStatus.pending,
+      ),
       currentUserEmail: currentUserEmail,
     );
   }
 
   @override
   Future<List<PropertyModel>> get() async {
-    await _syncSharedCardsLocally();
+    await expenseLocalSource.removeDuplicateExpenses();
     String currentUserEmail = await propertiesLocalSource.getCurrentUserEmail();
     List<PropertyModel> oldPropertiesList = await propertiesLocalSource
         .getPropertiesList(currentUserEmail: currentUserEmail);
@@ -38,40 +44,6 @@ class PropertyRepo implements PropertyRepoInter {
       }
     }
     return newList;
-  }
-
-  Future<void> _syncSharedCardsLocally() async {
-    try {
-      if (!await InternetUtils.hasInternetAccess()) return;
-      final email = await propertiesLocalSource.getCurrentUserEmail();
-      final remoteShared = await propertiesRemoteSource.getSharedWithMe();
-      final localList = await propertiesLocalSource.getPropertiesList(
-        currentUserEmail: email,
-      );
-      final localShared = localList.where((e) => e.isSharedWithMe).toList();
-
-      for (final local in localShared) {
-        final stillShared = remoteShared.any(
-          (remote) =>
-              remote.ownerId == local.ownerId && remote.cardId == local.cardId,
-        );
-        if (!stillShared) {
-          await propertiesLocalSource.deleteProperty(
-            cardId: local.cardId,
-            currentUserEmail: email,
-            ownerId: local.ownerId,
-            deleteLocalExpenses: true,
-          );
-        }
-      }
-
-      for (final remote in remoteShared) {
-        await propertiesLocalSource.upsertProperty(
-          model: remote,
-          currentUserEmail: email,
-        );
-      }
-    } catch (_) {}
   }
 
   @override
@@ -93,7 +65,12 @@ class PropertyRepo implements PropertyRepoInter {
       return;
     }
     await propertiesLocalSource.updateProperty(
-      model: model,
+      model: model.copyWith(
+        ownerId: (model.ownerId ?? '').isNotEmpty
+            ? model.ownerId
+            : FirebasePaths.currentUid,
+        syncStatus: SyncStatus.pending,
+      ),
       currentUserEmail: currentUserEmail,
     );
   }

@@ -1,7 +1,6 @@
 import 'package:expense_app/core/constant/const_text/auth_text.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
-import 'package:expense_app/core/extensions/string_extension.dart';
 import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/auth/domain/usescases/auth_usecases.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -88,10 +87,10 @@ class _LoginScreenState extends State<LoginScreen> {
               context.hideCustomLoading();
               passwordCtrl.reset();
               if (state.message == 'Login with fingerprint') {
-                context.push(RoutesName.syncDataScreen, extra: true);
+                context.go(RoutesName.naveBar);
               } else {
                 emailCtrl.reset();
-                context.push(RoutesName.syncDataScreen, extra: false);
+                context.go(RoutesName.naveBar);
               }
             }
 

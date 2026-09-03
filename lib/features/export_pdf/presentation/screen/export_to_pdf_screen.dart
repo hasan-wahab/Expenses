@@ -54,8 +54,10 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
           if (state is GetExpenseByPeriod) {
             switch (state.status) {
               case Status.loading:
+                context.showCustomLoading();
                 break;
               case Status.success:
+                context.hideCustomLoading();
                 pdfBytes = state.pdfBytes;
                 if (pdfBytes != null) {
                   context.push(
@@ -71,6 +73,7 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
 
                 break;
               case Status.error:
+                context.hideCustomLoading();
                 context.showSnackBar(state.message, isError: true);
                 break;
               default:
@@ -96,10 +99,7 @@ class _ExportToPdfScreenState extends State<ExportToPdfScreen> {
         },
         builder: (context, state) {
           final loading =
-              (state is GetAllPropertyCard &&
-                  state.status == Status.loading) ||
-              (state is GetExpenseByPeriod &&
-                  state.status == Status.loading);
+              state is GetAllPropertyCard && state.status == Status.loading;
           return Scaffold(
             appBar: CustomAppBar(
               title: ExportPdfText.export,

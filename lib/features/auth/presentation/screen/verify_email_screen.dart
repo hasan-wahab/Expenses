@@ -8,7 +8,6 @@ import 'package:expense_app/features/auth/domain/usescases/auth_usecases.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_events.dart';
 import 'package:expense_app/features/auth/presentation/bloc/auth_states.dart';
-import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/priamary_butn.dart';
 import 'package:expense_app/features/widgets/secondery_text.dart';
@@ -47,14 +46,19 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       child: BlocListener<AuthBloc, AuthStates>(
         listener: (context, state) {
           if (state is EmailVerificationState) {
+            if (state.status == Status.loading) {
+              context.showCustomLoading();
+            }
             if (state.status == Status.success) {
+              context.hideCustomLoading();
               if (state.isVerified) {
-                context.go(RoutesName.syncDataScreen, extra: false);
+                context.go(RoutesName.naveBar);
               } else if (state.message.isNotEmpty) {
                 context.showSnackBar(state.message);
               }
             }
             if (state.status == Status.error) {
+              context.hideCustomLoading();
               context.showSnackBar(state.message, isError: true);
             }
           }
@@ -62,10 +66,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
         /// Builder gives a context under BlocProvider (screen context is above it)
         child: BlocBuilder<AuthBloc, AuthStates>(
-          builder: (context, state) {
-            final loading =
-                state is EmailVerificationState &&
-                state.status == Status.loading;
+          builder: (context, _) {
             return Scaffold(
               backgroundColor: AppColors.bgColor,
               appBar: CustomAppBar(
@@ -75,9 +76,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               ),
               body: SafeArea(
                 top: false,
-                child: loading
-                    ? AppShimmer.form()
-                    : Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20.w),
                   child: Column(
                     children: [

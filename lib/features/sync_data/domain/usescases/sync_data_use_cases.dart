@@ -1,36 +1,60 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:expense_app/features/sync_data/data/sync_repo.dart';
 
 class SyncDataUseCases {
   SyncRepo syncRepo;
   SyncDataUseCases({required this.syncRepo});
-  Timer? _timer;
-  bool firstTime = true;
-  bool _syncing = false;
 
-  Future<void> syncDataCall() async {
-    _timer?.cancel();
-    if (firstTime) {
-      await syncRepo.syncPropertiesData();
-      firstTime = false;
+  Timer? _timer;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+  bool _syncing = false;
+  bool _started = false;
+  final _synced = StreamController<void>.broadcast();
+
+  Stream<void> get onSynced => _synced.stream;
+
+  /// Login / Home ke baad call karo. UI block nahi hota.
+  Future<void> startBackgroundSync() async {
+    if (_started) {
+      unawaited(_runOnce());
+      return;
     }
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      if (_syncing) return;
-      _syncing = true;
-      try {
-        await syncRepo.syncPropertiesData();
-        await syncRepo.syncExpensesData();
-      } finally {
-        _syncing = false;
+    _started = true;
+    unawaited(_runOnce());
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
+      if (results.any((r) => r != ConnectivityResult.none)) {
+        unawaited(_runOnce());
       }
     });
+    _timer = Timer.periodic(const Duration(seconds: 20), (_) {
+      unawaited(_runOnce());
+    });
+  }
+
+  Future<void> syncDataCall() => startBackgroundSync();
+
+  Future<void> _runOnce() async {
+    if (_syncing) return;
+    _syncing = true;
+    try {
+      final changed = await syncRepo.syncAll();
+      if (changed && !_synced.isClosed) {
+        _synced.add(null);
+      }
+    } catch (_) {
+    } finally {
+      _syncing = false;
+    }
   }
 
   void stopSync() {
     _timer?.cancel();
     _timer = null;
-    firstTime = true;
+    _connectivitySub?.cancel();
+    _connectivitySub = null;
+    _started = false;
   }
 
   void dispose() {

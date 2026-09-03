@@ -6,9 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// Expenseo / Data / Users / {uid}
 /// Expenseo / Data / Properties / {ownerUid}_{cardId}
 /// Expenseo / Data / Expenses / {ownerUid}_{expenseId}
+/// Expenseo / Data / Shares / {friendUid}_{propertyId}
 ///
-/// Sharing uses `members` / `memberIds` / `memberPermissions` on the
-/// same Properties doc (no duplicate card, no Shares collection).
+/// Property still holds members / memberIds / memberPermissions.
+/// Shares is the friend-readable index (query-safe).
 class FirebasePaths {
   FirebasePaths._();
 
@@ -19,6 +20,7 @@ class FirebasePaths {
   static const String users = 'Users';
   static const String properties = 'Properties';
   static const String expenses = 'Expenses';
+  static const String shares = 'Shares';
 
   /// Old nested tree — read-only migrate
   static const String legacyProperty = 'Property';
@@ -72,6 +74,24 @@ class FirebasePaths {
     String propertyId,
   ) {
     return propertiesCol.doc(propertyId);
+  }
+
+  static CollectionReference<Map<String, dynamic>> get sharesCol {
+    return dataDoc.collection(shares);
+  }
+
+  static String shareId({
+    required String friendUid,
+    required String propertyId,
+  }) {
+    return '${friendUid}_$propertyId';
+  }
+
+  static DocumentReference<Map<String, dynamic>> shareDoc({
+    required String friendUid,
+    required String propertyId,
+  }) {
+    return sharesCol.doc(shareId(friendUid: friendUid, propertyId: propertyId));
   }
 
   // ── Expenses ───────────────────────────────────────────

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/constant/wrapers.dart';
@@ -8,6 +10,7 @@ import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_bloc.da
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_events.dart';
 import 'package:expense_app/features/nave_bar/presentation/bloc/nave_bar_states.dart';
 import 'package:expense_app/features/settings/presentation/screen/settings_screen.dart';
+import 'package:expense_app/features/sync_data/domain/usescases/sync_data_use_cases.dart';
 import 'package:expense_app/features/widgets/extra_small_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,17 +21,37 @@ import '../../../../core/constant/const_text/dashboard_text.dart';
 import '../../../../core/di/get_it.dart';
 import '../../../../core/extensions/context_extension.dart';
 
-class NaveBar extends StatelessWidget {
+class NaveBar extends StatefulWidget {
   const NaveBar({super.key});
+
+  @override
+  State<NaveBar> createState() => _NaveBarState();
+}
+
+class _NaveBarState extends State<NaveBar> {
+  StreamSubscription<void>? _syncSub;
+
+  @override
+  void dispose() {
+    _syncSub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<NaveBarBloc>(),
+      create: (context) {
+        final bloc = sl<NaveBarBloc>();
+        sl<SyncDataUseCases>().startBackgroundSync();
+        _syncSub = sl<SyncDataUseCases>().onSynced.listen((_) {
+          bloc.add(NaveBarSyncHomeEvent());
+        });
+        return bloc;
+      },
       child: BlocBuilder<NaveBarBloc, NaveBarStates>(
         builder: (context, state) {
           final screens = [
-            DashboardScreen(key: ValueKey(state.homeRefreshKey)),
+            const DashboardScreen(),
             AddExpensesScreen(
               propertyCardId: '',
               mode: AddExpenseMode.fromNavBar,
@@ -85,7 +108,10 @@ class NaveBar extends StatelessWidget {
               context.read<NaveBarBloc>().add(NaveBarIndexEvent(index: 0));
             },
             child: Scaffold(
-              body: screens.elementAt(state.index),
+              body: IndexedStack(
+                index: state.index,
+                children: screens,
+              ),
               bottomNavigationBar: SafeArea(
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 12.w),

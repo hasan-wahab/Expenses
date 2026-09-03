@@ -23,12 +23,50 @@ class PropertiesRemoteSource {
     final map = Map<String, dynamic>.from(model.toMap());
     map.remove('isSharedWithMe');
     map.remove('myPermissions');
+    map.remove('memberIds');
+    map.remove('members');
+    map.remove('memberPermissions');
+    map.remove('syncStatus');
     return {
       ...map,
       'propertyId': id,
       'ownerId': ownerUid,
       'ownerEmail': currentUserEmail,
     };
+  }
+
+  bool _sameNum(num? a, num? b) => ((a ?? 0) - (b ?? 0)).abs() < 0.009;
+
+  bool _samePropertyWrite(
+    Map<String, dynamic> existing,
+    Map<String, dynamic> next,
+  ) {
+    const keys = [
+      'propertyName',
+      'propertyLocation',
+      'imageUrl',
+      'categoryType',
+      'ownerId',
+      'ownerEmail',
+    ];
+    for (final key in keys) {
+      if ('${existing[key] ?? ''}' != '${next[key] ?? ''}') return false;
+    }
+    if (!_sameNum(existing['monthlyBudget'] as num?, next['monthlyBudget'] as num?)) {
+      return false;
+    }
+    if (!_sameNum(
+      existing['monthlyExpenses'] as num?,
+      next['monthlyExpenses'] as num?,
+    )) {
+      return false;
+    }
+    if (!_sameNum(existing['progress'] as num?, next['progress'] as num?)) {
+      return false;
+    }
+    final existingDeleted = existing['isDeleted'] == true || existing['isDeleted'] == 1;
+    final nextDeleted = next['isDeleted'] == true || next['isDeleted'] == 1;
+    return existingDeleted == nextDeleted;
   }
 
   Future addNewProperty({
@@ -41,12 +79,19 @@ class PropertiesRemoteSource {
         ownerUid: ownerUid,
         cardId: model.cardId,
       );
+      final payload = _propertyPayload(
+        model: model,
+        currentUserEmail: currentUserEmail,
+        ownerUid: ownerUid,
+      );
+      payload.remove('updateAt');
+      final snap = await FirebasePaths.propertyDoc(id).get();
+      if (snap.exists && _samePropertyWrite(snap.data() ?? {}, payload)) {
+        return;
+      }
+      payload['updateAt'] = DateTime.now().toIso8601String();
       await FirebasePaths.propertyDoc(id).set(
-        _propertyPayload(
-          model: model,
-          currentUserEmail: currentUserEmail,
-          ownerUid: ownerUid,
-        ),
+        payload,
         SetOptions(merge: true),
       );
     } on FirebaseException catch (e) {
@@ -182,6 +227,43 @@ class PropertiesRemoteSource {
     }
   }
 
+  Future<bool> updateSpendTotals({
+    required String ownerUid,
+    required int cardId,
+    required double monthlyExpenses,
+    required double progress,
+  }) async {
+    try {
+      if (ownerUid.isEmpty) {
+        ownerUid = FirebasePaths.requireUid();
+      }
+      final id = FirebasePaths.propertyId(ownerUid: ownerUid, cardId: cardId);
+      final doc = FirebasePaths.propertyDoc(id);
+      final snap = await doc.get().timeout(const Duration(seconds: 15));
+      final data = snap.data();
+      if (data != null &&
+          _sameNum(data['monthlyExpenses'] as num?, monthlyExpenses) &&
+          _sameNum(data['progress'] as num?, progress)) {
+        return false;
+      }
+      await doc
+          .set({
+            'monthlyExpenses': monthlyExpenses,
+            'progress': progress,
+            'updateAt': DateTime.now().toIso8601String(),
+          }, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 15));
+      return true;
+    } on FirebaseException catch (e) {
+      _throwFirebase(e);
+    } on TimeoutException {
+      throw "Something went wrong. Please try again later.";
+    } on Exception {
+      rethrow;
+    }
+    return false;
+  }
+
   Future deletePropertyById({
     required int cardId,
     required String currentUserEmail,
@@ -278,12 +360,28 @@ class PropertiesRemoteSource {
 
             tx.set(ref, {
               ...data,
+              'ownerId': (data['ownerId']?.toString().isNotEmpty == true)
+                  ? data['ownerId']
+                  : ownerUid,
+              'ownerEmail':
+                  (data['ownerEmail']?.toString().isNotEmpty == true)
+                  ? data['ownerEmail']
+                  : currentUserEmail,
               'members': members,
               'memberIds': memberIds,
               'memberPermissions': memberPermissions,
             }, SetOptions(merge: true));
           })
           .timeout(const Duration(seconds: 20));
+
+      try {
+        await _writeShareIndex(
+          friendUid: friendUid,
+          propertyId: id,
+          ownerUid: ownerUid,
+          cardId: model.cardId,
+        );
+      } catch (_) {}
     } on FirebaseException catch (e) {
       _throwFirebase(e);
     } on TimeoutException {
@@ -325,6 +423,13 @@ class PropertiesRemoteSource {
             });
           })
           .timeout(const Duration(seconds: 20));
+
+      try {
+        await FirebasePaths.shareDoc(
+          friendUid: friendUid,
+          propertyId: id,
+        ).delete().timeout(const Duration(seconds: 15));
+      } catch (_) {}
     } on FirebaseException catch (e) {
       _throwFirebase(e);
     } on TimeoutException {
@@ -344,10 +449,23 @@ class PropertiesRemoteSource {
         const Duration(seconds: 15),
       );
       if (!snap.exists || snap.data() == null) return [];
-      return _readMembers(snap.data()!)
+      final members = _readMembers(snap.data()!)
           .map(_memberFromMap)
           .where((m) => m.email.isNotEmpty || (m.uid?.isNotEmpty ?? false))
           .toList();
+      for (final member in members) {
+        final uid = member.uid?.trim() ?? '';
+        if (uid.isEmpty || uid.contains('@')) continue;
+        try {
+          await _writeShareIndex(
+            friendUid: uid,
+            propertyId: id,
+            ownerUid: ownerUid,
+            cardId: cardId,
+          );
+        } catch (_) {}
+      }
+      return members;
     } on FirebaseException catch (e) {
       _throwFirebase(e);
     } on TimeoutException {
@@ -397,16 +515,24 @@ class PropertiesRemoteSource {
   Future<List<PropertyModel>> getSharedWithMe() async {
     try {
       final uid = FirebasePaths.requireUid();
-      final result = await FirebasePaths.propertiesCol
-          .where('memberIds', arrayContains: uid)
+      final shares = await FirebasePaths.sharesCol
+          .where('memberId', isEqualTo: uid)
           .get(const GetOptions(source: Source.server))
           .timeout(const Duration(seconds: 15));
-      if (result.docs.isEmpty) return [];
+      if (shares.docs.isEmpty) return [];
 
-      return result.docs
-          .map((doc) => _sharedPropertyFromData(doc.data(), uid))
-          .where((item) => item.isSharedWithMe && !item.isDeleted)
-          .toList();
+      final cards = <PropertyModel>[];
+      for (final share in shares.docs) {
+        final propertyId = share.data()['propertyId']?.toString() ?? '';
+        if (propertyId.isEmpty) continue;
+        final snap = await FirebasePaths.propertyDoc(propertyId)
+            .get(const GetOptions(source: Source.server))
+            .timeout(const Duration(seconds: 15));
+        if (!snap.exists || snap.data() == null) continue;
+        final card = _sharedPropertyFromData(snap.data()!, uid, snap.id);
+        if (!card.isDeleted) cards.add(card);
+      }
+      return cards;
     } on FirebaseException catch (e) {
       _throwFirebase(e);
     } on TimeoutException {
@@ -416,12 +542,34 @@ class PropertiesRemoteSource {
     }
   }
 
+  Future<void> _writeShareIndex({
+    required String friendUid,
+    required String propertyId,
+    required String ownerUid,
+    required int cardId,
+  }) async {
+    await FirebasePaths.shareDoc(
+      friendUid: friendUid,
+      propertyId: propertyId,
+    ).set({
+      'memberId': friendUid,
+      'propertyId': propertyId,
+      'ownerId': ownerUid,
+      'cardId': cardId,
+    }).timeout(const Duration(seconds: 15));
+  }
+
   PropertyModel _sharedPropertyFromData(
     Map<String, dynamic> data,
     String myUid,
+    String docId,
   ) {
     final model = PropertyModel.fromMap(data);
-    final ownerId = data['ownerId']?.toString() ?? '';
+    var ownerId = data['ownerId']?.toString() ?? '';
+    if (ownerId.isEmpty) {
+      final split = docId.lastIndexOf('_');
+      if (split > 0) ownerId = docId.substring(0, split);
+    }
     var perms = _readStringList(
       data['memberPermissions'] is Map
           ? (data['memberPermissions'] as Map)[myUid]
@@ -439,9 +587,9 @@ class PropertiesRemoteSource {
       perms = [SharePermissionItem.viewSummary, ...perms];
     }
     return model.copyWith(
-      ownerId: ownerId,
+      ownerId: ownerId.isEmpty ? null : ownerId,
       ownerEmail: data['ownerEmail']?.toString(),
-      isSharedWithMe: ownerId.isNotEmpty && ownerId != myUid,
+      isSharedWithMe: true,
       myPermissions: perms,
     );
   }

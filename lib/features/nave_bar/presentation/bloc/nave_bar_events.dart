@@ -6,3 +6,5 @@ class NaveBarIndexEvent extends NaveBarEvents {
 }
 
 class NaveBarRefreshHomeEvent extends NaveBarEvents {}
+
+class NaveBarSyncHomeEvent extends NaveBarEvents {}

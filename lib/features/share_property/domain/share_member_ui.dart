@@ -12,4 +12,4 @@ class ShareMemberUi {
   });
 }
 
-enum ShareEmailLookup { idle, searching, found, notFound, ownEmail }
+enum ShareEmailLookup { idle, searching, found, notFound, ownEmail, offline }

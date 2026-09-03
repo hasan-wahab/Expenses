@@ -1,8 +1,9 @@
+import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/di/get_it.dart';
 import 'package:expense_app/core/router/routes_name.dart';
 import 'package:expense_app/features/auth/domain/usescases/auth_usecases.dart';
 import 'package:expense_app/features/onboarding/data/onboarding_local.dart';
-import 'package:expense_app/features/widgets/app_shimmer.dart';
+import 'package:expense_app/features/widgets/app_spinner.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -46,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (!mounted) return;
 
       if (hasSession) {
-        context.go(RoutesName.syncDataScreen, extra: false);
+        context.go(RoutesName.naveBar);
         return;
       }
 
@@ -58,12 +59,12 @@ class _SplashScreenState extends State<SplashScreen> {
         // final verified = await useCases.isEmailVerifiedCall();
         // if (!mounted) return;
         // if (verified) {
-        //   context.go(RoutesName.syncDataScreen, extra: false);
+        //   context.go(RoutesName.naveBar);
         // } else {
         //   context.go(RoutesName.verifyEmail);
         // }
         // return;
-        context.go(RoutesName.syncDataScreen, extra: false);
+        context.go(RoutesName.naveBar);
         return;
       }
 
@@ -76,8 +77,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(child: AppShimmer.page()),
+    return const Scaffold(
+      backgroundColor: AppColors.bgColor,
+      body: SafeArea(child: AppSpinner()),
     );
   }
 }

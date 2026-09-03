@@ -34,6 +34,11 @@ service cloud.firestore {
         || (isMember(data) && perm in memberPerms(data));
     }
 
+    function totalsOnlyChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['monthlyExpenses', 'progress', 'updateAt']);
+    }
+
     function shareFieldsUnchanged() {
       return request.resource.data.get('ownerId', '')
           == resource.data.get('ownerId', '')
@@ -77,28 +82,67 @@ service cloud.firestore {
         && request.auth.uid == userId;
     }
 
+    /// One row per (friend, property). Friend lists these; then get() the property.
+    match /Expenseo/Data/Shares/{shareId} {
+      allow read: if isSignedIn()
+        && resource.data.memberId == request.auth.uid;
+      allow create, update: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.memberId is string;
+      allow delete: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid
+        || resource.data.memberId == request.auth.uid
+      );
+    }
+
     match /Expenseo/Data/Properties/{propertyId} {
-      allow read: if isOwner(resource.data) || isMember(resource.data);
+      allow get: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid ||
+        request.auth.uid in resource.data.memberIds
+      );
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.memberIds;
 
       allow create: if isSignedIn()
         && request.resource.data.get('ownerId', '') == request.auth.uid
         && docOwnedByUser(propertyId);
 
-      allow update: if isOwnerWrite(propertyId)
-        || (can(resource.data, 'edit') && shareFieldsUnchanged());
+      /// Doc id {uid}_* ka owner hamesha update kar sake (legacy ownerId email bhi).
+      allow update: if isSignedIn() && docOwnedByUser(propertyId)
+        && request.resource.data.get('ownerId', '') == request.auth.uid;
+      allow update: if can(resource.data, 'edit') && shareFieldsUnchanged();
+      allow update: if can(resource.data, 'addExpense') && totalsOnlyChanged();
 
       allow delete: if isOwner(resource.data)
         || can(resource.data, 'deleteProperty');
     }
 
     match /Expenseo/Data/Expenses/{expenseId} {
-      allow read: if can(propertyData(resource.data.propertyId), 'viewSummary');
+      allow get: if isSignedIn() && (
+        resource.data.propertyOwnerId == request.auth.uid ||
+        resource.data.createdById == request.auth.uid ||
+        resource.data.ownerId == request.auth.uid ||
+        request.auth.uid in resource.data.get('memberIds', []) ||
+        can(propertyData(resource.data.propertyId), 'viewSummary')
+      );
+      allow list: if isSignedIn() && resource.data.propertyOwnerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.createdById == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.get('memberIds', []);
+      allow list: if isSignedIn()
+        && resource.data.get('propertyId', '') != ''
+        && can(propertyData(resource.data.propertyId), 'viewSummary');
 
       allow create: if isSignedIn()
         && request.resource.data.keys().hasAll(['propertyId', 'ownerId'])
-        && can(propertyData(request.resource.data.propertyId), 'addExpense');
+        && (
+          request.resource.data.get('propertyOwnerId', '') == request.auth.uid
+          || request.resource.data.get('createdById', '') == request.auth.uid
+          || can(propertyData(request.resource.data.propertyId), 'addExpense')
+        );
 
-      allow update: if isOwner(resource.data);
+      allow update: if isOwner(resource.data)
+        || request.resource.data.get('createdById', '') == request.auth.uid;
 
       allow delete: if isOwner(resource.data)
         || can(propertyData(resource.data.propertyId), 'deleteProperty');

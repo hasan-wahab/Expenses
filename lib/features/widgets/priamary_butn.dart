@@ -1,7 +1,6 @@
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/extensions/context_extension.dart';
 import 'package:expense_app/features/widgets/app_b_text.dart';
-import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -30,14 +29,10 @@ class PrimaryButton extends StatelessWidget {
     return InkWell(
       onTap: isDisable ? null : onTap,
       child: Card(
-        color: isDisable ? const Color(0xFFFFFFFF) : null,
-        surfaceTintColor: isDisable ? Colors.transparent : null,
         child: Container(
           alignment: .center,
           decoration: BoxDecoration(
-            color: isDisable
-                ? const Color(0xFFE6E6E6)
-                : (!isOutline ? AppColors.primary : AppColors.white),
+            color: !isOutline ? AppColors.primary : AppColors.white,
             borderRadius: BorderRadius.circular(12.r),
             border: isOutline ? Border.all(color: AppColors.primary) : null,
             boxShadow: [
@@ -52,7 +47,14 @@ class PrimaryButton extends StatelessWidget {
           height: height ?? 48.h,
           width: width ?? 350.w,
           child: isDisable
-              ? AppShimmer.button()
+              ? SizedBox(
+                  height: 22.h,
+                  width: 22.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.4,
+                    color: !isOutline ? Colors.white : AppColors.primary,
+                  ),
+                )
               : AppBarText(
                   text: text,
                   style:

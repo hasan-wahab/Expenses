@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:expense_app/core/constant/const_text/share_property_text.dart';
 import 'package:expense_app/core/constant/enums.dart';
+import 'package:expense_app/core/utils/internet_utils.dart';
 import 'package:expense_app/features/dashboard/domain/entitity/dashboard_card_entity.dart';
 import 'package:expense_app/features/share_property/domain/share_member_ui.dart';
 import 'package:expense_app/features/share_property/domain/share_permission_item.dart';
@@ -32,15 +33,21 @@ class SharePropertyBloc extends Bloc<SharePropertyEvents, SharePropertyState> {
         clearMessage: true,
       ),
     );
-    try {
-      final members = await useCases.getMembers(cardId: event.card.cardId);
+    if (!await InternetUtils.hasInternetAccess()) {
       if (emit.isDone) return;
       emit(
         state.copyWith(
-          members: members,
           isLoadingMembers: false,
+          status: Status.error,
+          message: SharePropertyText.needInternet,
         ),
       );
+      return;
+    }
+    try {
+      final members = await useCases.getMembers(cardId: event.card.cardId);
+      if (emit.isDone) return;
+      emit(state.copyWith(members: members, isLoadingMembers: false));
     } catch (_) {
       if (emit.isDone) return;
       emit(
@@ -85,6 +92,17 @@ class SharePropertyBloc extends Bloc<SharePropertyEvents, SharePropertyState> {
         clearFoundUser: true,
       ),
     );
+
+    if (!await InternetUtils.hasInternetAccess()) {
+      if (emit.isDone) return;
+      emit(
+        state.copyWith(
+          emailLookup: ShareEmailLookup.offline,
+          clearFoundUser: true,
+        ),
+      );
+      return;
+    }
 
     try {
       final data = await useCases.findRegisteredUserByEmail(email);
@@ -219,6 +237,17 @@ class SharePropertyBloc extends Bloc<SharePropertyEvents, SharePropertyState> {
         clearMessage: true,
       ),
     );
+    if (!await InternetUtils.hasInternetAccess()) {
+      if (emit.isDone) return;
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          status: Status.error,
+          message: SharePropertyText.needInternet,
+        ),
+      );
+      return;
+    }
     try {
       await useCases.shareWithFriend(
         card: card,
@@ -257,9 +286,14 @@ class SharePropertyBloc extends Bloc<SharePropertyEvents, SharePropertyState> {
     final friendUid = (event.uid != null && event.uid!.isNotEmpty)
         ? event.uid!
         : (state.members
-                  .where((m) => m.email.toLowerCase() == event.email.toLowerCase())
+                  .where(
+                    (m) => m.email.toLowerCase() == event.email.toLowerCase(),
+                  )
                   .map((m) => m.uid)
-                  .firstWhere((id) => id != null && id.isNotEmpty, orElse: () => null) ??
+                  .firstWhere(
+                    (id) => id != null && id.isNotEmpty,
+                    orElse: () => null,
+                  ) ??
               '');
     if (friendUid.isEmpty) {
       emit(
@@ -278,6 +312,17 @@ class SharePropertyBloc extends Bloc<SharePropertyEvents, SharePropertyState> {
         clearMessage: true,
       ),
     );
+    if (!await InternetUtils.hasInternetAccess()) {
+      if (emit.isDone) return;
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          status: Status.error,
+          message: SharePropertyText.needInternet,
+        ),
+      );
+      return;
+    }
     try {
       await useCases.unshareFriend(cardId: card.cardId, friendUid: friendUid);
       final members = await useCases.getMembers(cardId: card.cardId);

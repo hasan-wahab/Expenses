@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:expense_app/core/di/get_it.dart';
 import 'package:expense_app/features/add_property/domain/usescases/add_property_usecases.dart';
 import 'package:expense_app/features/add_property/presentation/bloc/add_property_event.dart';
+import 'package:expense_app/features/sync_data/domain/usescases/sync_data_use_cases.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constant/enums.dart';
@@ -44,6 +46,7 @@ class AddPropertyBloc extends Bloc<AddPropertyEvent, AddPropertyStates> {
         await useCases.addPropertyCall(
           model: event.model.copyWith(imageUrl: path),
         );
+        unawaited(sl<SyncDataUseCases>().startBackgroundSync());
         emit(GetAddedPropertyCardState(status: Status.success));
       }
     } catch (e) {
@@ -89,6 +92,7 @@ class AddPropertyBloc extends Bloc<AddPropertyEvent, AddPropertyStates> {
         model: PropertyModel.fromEntity(event.model),
         propertyCardId: event.model.cardId.toString(),
       );
+      unawaited(sl<SyncDataUseCases>().startBackgroundSync());
 
       emit(
         GetAddedPropertyCardState(

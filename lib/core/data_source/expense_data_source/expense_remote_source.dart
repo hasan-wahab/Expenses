@@ -22,20 +22,44 @@ class ExpenseRemoteSource {
     required ExpenseModel model,
     required String propertyOwnerUid,
     required String createdById,
+    List<String> memberIds = const [],
   }) {
     final cardId = model.propertyCardId ?? 0;
     final map = Map<String, dynamic>.from(model.toMap());
     map.remove('isSharedWithMe');
-    map.remove('propertyOwnerId');
     return {
       ...map,
       'propertyId': FirebasePaths.propertyId(
         ownerUid: propertyOwnerUid,
         cardId: cardId,
       ),
+      'propertyOwnerId': propertyOwnerUid,
       'ownerId': createdById,
       'createdById': createdById,
+      if (memberIds.isNotEmpty) 'memberIds': memberIds,
     };
+  }
+
+  Future<List<String>> _propertyMemberIds({
+    required String propertyOwnerUid,
+    required int cardId,
+  }) async {
+    try {
+      final snap = await FirebasePaths.propertyDoc(
+        FirebasePaths.propertyId(
+          ownerUid: propertyOwnerUid,
+          cardId: cardId,
+        ),
+      ).get();
+      final ids = snap.data()?['memberIds'];
+      if (ids is List) {
+        return ids
+            .map((e) => e.toString())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      }
+    } catch (_) {}
+    return const [];
   }
 
   Future addNewExpense({
@@ -49,6 +73,10 @@ class ExpenseRemoteSource {
           ? propertyOwnerUid
           : currentUid;
       final localExpenseId = model.id ?? 0;
+      final memberIds = await _propertyMemberIds(
+        propertyOwnerUid: propertyOwner,
+        cardId: model.propertyCardId ?? 0,
+      );
       await FirebasePaths.expenseDoc(
             FirebasePaths.expenseId(
               ownerUid: currentUid,
@@ -60,6 +88,7 @@ class ExpenseRemoteSource {
               model: model,
               propertyOwnerUid: propertyOwner,
               createdById: currentUid,
+              memberIds: memberIds,
             ),
             SetOptions(merge: true),
           )

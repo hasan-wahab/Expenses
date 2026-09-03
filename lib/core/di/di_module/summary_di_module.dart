@@ -5,7 +5,6 @@ import '../../../features/summary/data/summary_repo.dart';
 import '../../../features/summary/domain/usescases/summary_usecases.dart';
 import '../../../features/summary/presentation/bloc/summary_bloc.dart';
 import '../../data_source/expense_data_source/expense_local_source.dart';
-import '../../data_source/expense_data_source/expense_remote_source.dart';
 import '../../data_source/properties_data_source/propertis_local_source.dart';
 
 class SummaryDiModule extends DIModule {
@@ -18,7 +17,6 @@ class SummaryDiModule extends DIModule {
         () => SummaryRepo(
           expenseLocalSource: sl<ExpenseLocalSource>(),
           propertiesLocalSource: sl<PropertiesLocalSource>(),
-          expenseRemoteSource: sl<ExpenseRemoteSource>(),
         ),
       )
       ..registerLazySingleton(

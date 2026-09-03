@@ -20,6 +20,9 @@ class SyncDataDiModule implements DIModule {
       ..registerLazySingleton(
         () => PropertiesLocalSource(sqfLiteCurd: sl<SqfLiteCurd>()),
       )
+      ..registerLazySingleton(
+        () => ExpenseRemoteSource(sqfLiteCurd: sl<SqfLiteCurd>()),
+      )
       ..registerLazySingleton<SyncRepo>(
         () => SyncRepo(
           remoteSource: sl<PropertiesRemoteSource>(),

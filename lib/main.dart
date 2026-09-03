@@ -3,7 +3,7 @@ import 'package:expense_app/core/constant/themes/themes/themes.dart';
 import 'package:expense_app/core/di/get_it.dart';
 import 'package:expense_app/core/router/route_generator.dart';
 import 'package:expense_app/core/storage/sqflite.dart';
-import 'package:expense_app/features/widgets/app_shimmer.dart';
+import 'package:expense_app/features/widgets/app_spinner.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -73,7 +73,7 @@ class _StartupAppState extends State<_StartupApp> {
         backgroundColor: AppColors.bgColor,
         body: Center(
           child: _error == null
-              ? AppShimmer.boot()
+              ? const AppSpinner()
               : Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(

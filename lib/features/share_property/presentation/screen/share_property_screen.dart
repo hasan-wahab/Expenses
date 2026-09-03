@@ -15,7 +15,6 @@ import 'package:expense_app/features/share_property/presentation/widgets/share_e
 import 'package:expense_app/features/share_property/presentation/widgets/share_members_card.dart';
 import 'package:expense_app/features/share_property/presentation/widgets/share_permission_tile.dart';
 import 'package:expense_app/features/share_property/presentation/widgets/share_property_header.dart';
-import 'package:expense_app/features/widgets/app_shimmer.dart';
 import 'package:expense_app/features/widgets/app_t_field.dart';
 import 'package:expense_app/features/widgets/cusom_appbar.dart';
 import 'package:expense_app/features/widgets/extra_small_text.dart';
@@ -63,11 +62,17 @@ class _SharePropertyScreenState extends State<SharePropertyScreen> {
       },
       child: BlocConsumer<SharePropertyBloc, SharePropertyState>(
         listenWhen: (previous, current) =>
-            current.message != null &&
-            current.message != previous.message &&
-            (current.status == Status.error ||
-                current.status == Status.success),
+            current.isSubmitting != previous.isSubmitting ||
+            (current.message != null &&
+                current.message != previous.message &&
+                (current.status == Status.error ||
+                    current.status == Status.success)),
         listener: (context, state) {
+          if (state.isSubmitting) {
+            context.showCustomLoading();
+          } else {
+            context.hideCustomLoading();
+          }
           if (state.status == Status.error && state.message != null) {
             context.showSnackBar(state.message!, isError: true);
           }
@@ -85,10 +90,8 @@ class _SharePropertyScreenState extends State<SharePropertyScreen> {
             ),
             body: SafeArea(
               top: false,
-              child: state.isSubmitting
-                  ? AppShimmer.form()
-                  : ListView(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: ListView(
+                padding: .symmetric(horizontal: 20.w),
                 children: [
                   SizedBox(height: 24.h),
                   SharePropertyHeader(entity: widget.cardEntity),
@@ -134,10 +137,7 @@ class _SharePropertyScreenState extends State<SharePropertyScreen> {
                     child: IgnorePointer(
                       ignoring: !state.canShare,
                       child: PrimaryButton(
-                        text: state.isSubmitting
-                            ? SharePropertyText.sharing
-                            : SharePropertyText.shareWithFriend,
-                        isDisable: state.isSubmitting,
+                        text: SharePropertyText.shareWithFriend,
                         onTap: () => context.read<SharePropertyBloc>().add(
                           SubmitSharePropertyEvent(
                             email: emailController.text.trim(),

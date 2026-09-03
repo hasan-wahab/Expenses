@@ -1,4 +1,5 @@
 import 'package:expense_app/core/constant/app_key/table_keys.dart';
+import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/core/storage/sqflite_curd.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -57,6 +58,67 @@ class PropertiesLocalSource {
     } on Exception {
       rethrow;
     }
+  }
+
+  Future<void> applySharedCards({
+    required String currentUserEmail,
+    required List<PropertyModel> remoteShared,
+  }) async {
+    final localList = await getPropertiesList(
+      currentUserEmail: currentUserEmail,
+    );
+    final localShared = localList.where((e) => e.isSharedWithMe).toList();
+
+    for (final local in localShared) {
+      final stillShared = remoteShared.any(
+        (remote) =>
+            remote.ownerId == local.ownerId && remote.cardId == local.cardId,
+      );
+      if (!stillShared) {
+        await deleteProperty(
+          cardId: local.cardId,
+          currentUserEmail: currentUserEmail,
+          ownerId: local.ownerId,
+          deleteLocalExpenses: true,
+        );
+      }
+    }
+
+    for (final remote in remoteShared) {
+      final existing = localList.where(
+        (local) =>
+            local.isSharedWithMe &&
+            local.ownerId == remote.ownerId &&
+            local.cardId == remote.cardId,
+      );
+      final localCard = existing.isEmpty ? null : existing.first;
+      if (localCard != null && _sameSharedCard(localCard, remote)) {
+        continue;
+      }
+      await upsertProperty(
+        model: remote.copyWith(
+          syncStatus: SyncStatus.synced,
+          monthlyExpenses:
+              localCard?.monthlyExpenses ?? remote.monthlyExpenses,
+          progress: localCard?.progress ?? remote.progress,
+          updateAt: localCard?.updateAt ?? remote.updateAt,
+        ),
+        currentUserEmail: currentUserEmail,
+      );
+    }
+  }
+
+  bool _sameSharedCard(PropertyModel local, PropertyModel remote) {
+    bool sameNum(num? a, num? b) => ((a ?? 0) - (b ?? 0)).abs() < 0.009;
+    if (local.propertyName != remote.propertyName) return false;
+    if (local.propertyLocation != remote.propertyLocation) return false;
+    if (local.imageUrl != remote.imageUrl) return false;
+    if (local.categoryType != remote.categoryType) return false;
+    if (!sameNum(local.monthlyBudget, remote.monthlyBudget)) return false;
+    if (local.myPermissions.join(',') != remote.myPermissions.join(',')) {
+      return false;
+    }
+    return true;
   }
 
   Future updateProperty({

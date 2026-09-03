@@ -246,8 +246,7 @@ class AuthRemoteSource {
         .get(GetOptions(source: Source.server))
         .timeout(Duration(seconds: 15));
     if (query.docs.isNotEmpty) {
-      final data = query.docs.first.data();
-      return {'uid': query.docs.first.id, ...data};
+      return _userLookupMap(query.docs.first.id, query.docs.first.data());
     }
 
     for (final value in emails) {
@@ -255,10 +254,21 @@ class AuthRemoteSource {
           .get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: 10));
       if (legacy.exists && legacy.data() != null) {
-        return {'uid': legacy.id, ...legacy.data()!};
+        return _userLookupMap(legacy.id, legacy.data()!);
       }
     }
     return null;
+  }
+
+  Map<String, dynamic> _userLookupMap(
+    String docId,
+    Map<String, dynamic> data,
+  ) {
+    final fromField = data['uid']?.toString().trim() ?? '';
+    final uid = (fromField.isNotEmpty && !fromField.contains('@'))
+        ? fromField
+        : docId;
+    return {...data, 'uid': uid};
   }
 
   Future<Map<String, dynamic>?> _userMapByEmail(String email) async {

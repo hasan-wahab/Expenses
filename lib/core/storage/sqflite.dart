@@ -8,7 +8,7 @@ class DBHelper {
   static Database? _database;
 
   /// Bump this when local schema must reset / migrate.
-  static const int dbVersion = 7;
+  static const int dbVersion = 8;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -46,6 +46,9 @@ class DBHelper {
     }
     if (oldVersion < 7) {
       await _migrateExpenseShareColumns(db);
+    }
+    if (oldVersion < 8) {
+      await _migrateExpenseCreatedBy(db);
     }
   }
 
@@ -90,6 +93,48 @@ class DBHelper {
     await db.execute('DROP TABLE ${TableKeys.propertyCardTable}');
     await db.execute(
       'ALTER TABLE $newTable RENAME TO ${TableKeys.propertyCardTable}',
+    );
+  }
+
+  Future<void> _migrateExpenseCreatedBy(Database db) async {
+    const newTable = 'EXPENSES_TABLE_V8';
+    await db.execute('''
+          CREATE TABLE $newTable (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT,
+            expenseId INTEGER,
+            propertyCardId INTEGER,
+            title TEXT,
+            note TEXT,
+            receiptImage TEXT,
+            amount REAL,
+            categoryType TEXT,
+            date TEXT,
+            createAt TEXT,
+            updateAt TEXT,
+            syncStatus TEXT,
+            isDeleted INTEGER,
+            propertyOwnerId TEXT DEFAULT '',
+            isSharedWithMe INTEGER DEFAULT 0,
+            createdById TEXT DEFAULT '',
+            UNIQUE(email, createdById, expenseId)
+          )
+        ''');
+    await db.execute('''
+          INSERT INTO $newTable (
+            id, email, expenseId, propertyCardId, title, note, receiptImage,
+            amount, categoryType, date, createAt, updateAt, syncStatus,
+            isDeleted, propertyOwnerId, isSharedWithMe, createdById
+          )
+          SELECT
+            id, email, expenseId, propertyCardId, title, note, receiptImage,
+            amount, categoryType, date, createAt, updateAt, syncStatus,
+            isDeleted, IFNULL(propertyOwnerId, ''), IFNULL(isSharedWithMe, 0), ''
+          FROM ${TableKeys.expensesTable}
+        ''');
+    await db.execute('DROP TABLE ${TableKeys.expensesTable}');
+    await db.execute(
+      'ALTER TABLE $newTable RENAME TO ${TableKeys.expensesTable}',
     );
   }
 
@@ -193,7 +238,8 @@ class DBHelper {
             isDeleted INTEGER,
             propertyOwnerId TEXT DEFAULT '',
             isSharedWithMe INTEGER DEFAULT 0,
-            UNIQUE(email, expenseId)
+            createdById TEXT DEFAULT '',
+            UNIQUE(email, createdById, expenseId)
           )
         ''');
     await db.execute('''
