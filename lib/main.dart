@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:expense_app/core/constant/themes/themes/colors.dart';
 import 'package:expense_app/core/constant/themes/themes/themes.dart';
 import 'package:expense_app/core/di/get_it.dart';
@@ -5,6 +7,7 @@ import 'package:expense_app/core/router/route_generator.dart';
 import 'package:expense_app/core/storage/sqflite.dart';
 import 'package:expense_app/features/widgets/app_spinner.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -49,20 +52,33 @@ class _StartupAppState extends State<_StartupApp> {
   Future<void> _initFirebase() async {
     try {
       if (Firebase.apps.isNotEmpty) return;
-      // Must match google-services.json client for com.neonweb.expensioapp.app
       await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: 'AIzaSyADVsgLILrAwh57YUcShjbr2Zxb35PaBKw',
-          appId: '1:660323074036:android:ed8e7e4c0a1fbd1e7f03a1',
-          messagingSenderId: '660323074036',
-          projectId: 'tictoegame-d1f4b',
-          storageBucket: 'tictoegame-d1f4b.firebasestorage.app',
-        ),
+        options: _firebaseOptions(),
       ).timeout(const Duration(seconds: 12));
     } on FirebaseException catch (e) {
       if (e.code == 'duplicate-app') return;
       rethrow;
     }
+  }
+
+  FirebaseOptions _firebaseOptions() {
+    if (!kIsWeb && Platform.isIOS) {
+      return const FirebaseOptions(
+        apiKey: 'AIzaSyBFASJA2gslayq5x-9LEVqwcDaNwE28rJc',
+        appId: '1:660323074036:ios:4ccb9d27e5786a9f7f03a1',
+        messagingSenderId: '660323074036',
+        projectId: 'tictoegame-d1f4b',
+        storageBucket: 'tictoegame-d1f4b.firebasestorage.app',
+        iosBundleId: 'com.neonweb.expensioapp.app',
+      );
+    }
+    return const FirebaseOptions(
+      apiKey: 'AIzaSyADVsgLILrAwh57YUcShjbr2Zxb35PaBKw',
+      appId: '1:660323074036:android:ed8e7e4c0a1fbd1e7f03a1',
+      messagingSenderId: '660323074036',
+      projectId: 'tictoegame-d1f4b',
+      storageBucket: 'tictoegame-d1f4b.firebasestorage.app',
+    );
   }
 
   @override
