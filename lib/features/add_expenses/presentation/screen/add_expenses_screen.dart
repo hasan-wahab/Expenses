@@ -163,6 +163,8 @@ class _AddExpensesScreenState extends State<AddExpensesScreen> {
               context.showSnackBar('Expense Added Successfully');
               if (widget.mode == AddExpenseMode.fromCard) {
                 context.pop(true);
+              } else {
+                context.read<NaveBarBloc>().add(NaveBarSyncHomeEvent());
               }
             }
             if (state.status == Status.error) {

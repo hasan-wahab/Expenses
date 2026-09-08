@@ -38,16 +38,13 @@ class ExpenseLocalSource {
       List<PropertyModel> propertyModel = await propertiesLocalSource
           .getPropertiesList(currentUserEmail: currentUserEmail);
 
-      final expenseOwnerKey = model.propertyOwnerId ?? '';
       for (var element in propertyModel) {
         if (element.cardId != model.propertyCardId) continue;
-        final propertyOwnerKey = element.ownerId ?? '';
-        final sameOwner = propertyOwnerKey == expenseOwnerKey;
-        final sharedSameCard =
-            model.isSharedWithMe &&
-            element.isSharedWithMe &&
-            (expenseOwnerKey.isEmpty || expenseOwnerKey == propertyOwnerKey);
-        if (!sameOwner && !sharedSameCard) continue;
+        if (element.isSharedWithMe != model.isSharedWithMe) continue;
+        if (model.isSharedWithMe &&
+            (model.propertyOwnerId ?? '') != (element.ownerId ?? '')) {
+          continue;
+        }
 
         final double newAmount =
             (element.monthlyExpenses ?? 0) + (model.amount ?? 0);

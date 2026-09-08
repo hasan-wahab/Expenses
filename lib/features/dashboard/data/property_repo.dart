@@ -1,7 +1,6 @@
 import 'package:expense_app/core/constant/app_key/firebase_paths.dart';
 import 'package:expense_app/core/constant/enums.dart';
 import 'package:expense_app/core/data_source/expense_data_source/expense_local_source.dart';
-import 'package:expense_app/core/data_source/properties_data_source/properties_remote_source.dart';
 import 'package:expense_app/core/data_source/properties_data_source/propertis_local_source.dart';
 import 'package:expense_app/features/dashboard/data/models/property_card_model.dart';
 import 'package:expense_app/features/dashboard/domain/repos_inter/property_repo_inter.dart';
@@ -9,12 +8,10 @@ import 'package:expense_app/features/dashboard/domain/repos_inter/property_repo_
 class PropertyRepo implements PropertyRepoInter {
   PropertiesLocalSource propertiesLocalSource;
   ExpenseLocalSource expenseLocalSource;
-  PropertiesRemoteSource propertiesRemoteSource;
 
   PropertyRepo({
     required this.propertiesLocalSource,
     required this.expenseLocalSource,
-    required this.propertiesRemoteSource,
   });
 
   @override
@@ -53,13 +50,8 @@ class PropertyRepo implements PropertyRepoInter {
   }) async {
     String currentUserEmail = await propertiesLocalSource.getCurrentUserEmail();
     if (model.isSharedWithMe) {
-      await propertiesRemoteSource.updatePropertyById(
-        model: model,
-        currentUserEmail: currentUserEmail,
-        ownerUid: model.ownerId,
-      );
       await propertiesLocalSource.upsertProperty(
-        model: model,
+        model: model.copyWith(syncStatus: SyncStatus.pending),
         currentUserEmail: currentUserEmail,
       );
       return;
@@ -79,11 +71,6 @@ class PropertyRepo implements PropertyRepoInter {
   Future<dynamic> delete({required PropertyModel model}) async {
     String currentUserEmail = await propertiesLocalSource.getCurrentUserEmail();
     if (model.isSharedWithMe) {
-      await propertiesRemoteSource.deletePropertyById(
-        cardId: model.cardId,
-        currentUserEmail: currentUserEmail,
-        ownerUid: model.ownerId,
-      );
       await propertiesLocalSource.deleteProperty(
         cardId: model.cardId,
         currentUserEmail: currentUserEmail,
@@ -93,7 +80,7 @@ class PropertyRepo implements PropertyRepoInter {
       return;
     }
     await propertiesLocalSource.updateProperty(
-      model: model,
+      model: model.copyWith(syncStatus: SyncStatus.pending),
       currentUserEmail: currentUserEmail,
     );
   }

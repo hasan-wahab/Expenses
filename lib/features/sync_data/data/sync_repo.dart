@@ -57,8 +57,21 @@ class SyncRepo {
       );
 
       for (final item in list) {
-        if (item.isSharedWithMe) continue;
         try {
+          if (item.isSharedWithMe) {
+            if (item.syncStatus == SyncStatus.pending && !item.isDeleted) {
+              await remoteSource.updatePropertyById(
+                model: item,
+                currentUserEmail: currentUserEmail,
+                ownerUid: item.ownerId,
+              );
+              await localSource.updateProperty(
+                model: item.copyWith(syncStatus: SyncStatus.synced),
+                currentUserEmail: currentUserEmail,
+              );
+            }
+            continue;
+          }
           if (item.isDeleted == true) {
             await remoteSource.deletePropertyById(
               cardId: item.cardId,

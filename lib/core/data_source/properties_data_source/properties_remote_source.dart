@@ -85,15 +85,20 @@ class PropertiesRemoteSource {
         ownerUid: ownerUid,
       );
       payload.remove('updateAt');
-      final snap = await FirebasePaths.propertyDoc(id).get();
-      if (snap.exists && _samePropertyWrite(snap.data() ?? {}, payload)) {
+      final doc = FirebasePaths.propertyDoc(id);
+      DocumentSnapshot<Map<String, dynamic>>? snap;
+      try {
+        snap = await doc.get();
+      } on FirebaseException catch (e) {
+        if (e.code != 'permission-denied') rethrow;
+      }
+      if (snap != null &&
+          snap.exists &&
+          _samePropertyWrite(snap.data() ?? {}, payload)) {
         return;
       }
       payload['updateAt'] = DateTime.now().toIso8601String();
-      await FirebasePaths.propertyDoc(id).set(
-        payload,
-        SetOptions(merge: true),
-      );
+      await doc.set(payload, SetOptions(merge: true));
     } on FirebaseException catch (e) {
       switch (e.code) {
         case 'resource-exhausted':
@@ -239,8 +244,15 @@ class PropertiesRemoteSource {
       }
       final id = FirebasePaths.propertyId(ownerUid: ownerUid, cardId: cardId);
       final doc = FirebasePaths.propertyDoc(id);
-      final snap = await doc.get().timeout(const Duration(seconds: 15));
-      final data = snap.data();
+      DocumentSnapshot<Map<String, dynamic>>? snap;
+      try {
+        snap = await doc.get().timeout(const Duration(seconds: 15));
+      } on FirebaseException catch (e) {
+        if (e.code == 'permission-denied') return false;
+        _throwFirebase(e);
+      }
+      final data = snap?.data();
+      if (snap == null || !snap.exists) return false;
       if (data != null &&
           _sameNum(data['monthlyExpenses'] as num?, monthlyExpenses) &&
           _sameNum(data['progress'] as num?, progress)) {

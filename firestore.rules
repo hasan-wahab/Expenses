@@ -96,9 +96,12 @@ service cloud.firestore {
     }
 
     match /Expenseo/Data/Properties/{propertyId} {
+      /// Missing doc get() must be allowed — otherwise first save never runs.
       allow get: if isSignedIn() && (
-        resource.data.ownerId == request.auth.uid ||
-        request.auth.uid in resource.data.memberIds
+        resource == null ||
+        docOwnedByUser(propertyId) ||
+        ownerIdOf(resource.data) == request.auth.uid ||
+        request.auth.uid in memberIds(resource.data)
       );
       allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
       allow list: if isSignedIn() && request.auth.uid in resource.data.memberIds;
@@ -119,6 +122,7 @@ service cloud.firestore {
 
     match /Expenseo/Data/Expenses/{expenseId} {
       allow get: if isSignedIn() && (
+        resource == null ||
         resource.data.propertyOwnerId == request.auth.uid ||
         resource.data.createdById == request.auth.uid ||
         resource.data.ownerId == request.auth.uid ||
@@ -129,6 +133,9 @@ service cloud.firestore {
       allow list: if isSignedIn() && resource.data.createdById == request.auth.uid;
       allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
       allow list: if isSignedIn() && request.auth.uid in resource.data.get('memberIds', []);
+      allow list: if isSignedIn()
+        && resource.data.get('propertyId', '') != ''
+        && docOwnedByUser(resource.data.propertyId);
       allow list: if isSignedIn()
         && resource.data.get('propertyId', '') != ''
         && can(propertyData(resource.data.propertyId), 'viewSummary');
